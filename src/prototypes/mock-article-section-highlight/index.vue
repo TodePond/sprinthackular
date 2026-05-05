@@ -14,7 +14,7 @@ import ChromeWrapper from '@/components/ChromeWrapper.vue'
 
 definePage({
   meta: {
-    title: 'Mock article: paragraph highlight + attribution',
+    title: 'Recently edited paragraph',
     description:
       'Wet Leg mock article with one highlighted paragraph and a small attribution line below it.',
   },
