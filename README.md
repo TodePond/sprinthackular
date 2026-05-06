@@ -1,3 +1,7 @@
+Connection prototypes for the 2026 Sprinthackular.
+
+---
+
 # ProtoWiki
 
 This repo is an experimental collection of resources for MediaWiki prototyping. It contains many links to many tools you can use. It's also an unopinionated prototyping template itself for minimal prototypes.
