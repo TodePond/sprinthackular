@@ -8,10 +8,21 @@ import {
   cdxIconHeart,
   cdxIconHistory,
 } from '@wikimedia/codex-icons'
-import { createApp, defineComponent, h, nextTick, onMounted, onUnmounted, ref } from 'vue'
+import {
+  computed,
+  createApp,
+  defineComponent,
+  h,
+  inject,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  ref,
+} from 'vue'
 
 import Article from '@/components/Article.vue'
 import ChromeWrapper from '@/components/ChromeWrapper.vue'
+import { globalSkin, PROTOWIKI_CHROME_SKIN } from '@/lib/theming'
 
 definePage({
   meta: {
@@ -25,6 +36,9 @@ const ATTRIBUTION_CLASS = 'protowiki-demo-para-attribution'
 
 const highlightParaSelector =
   '.mw-parser-output section[data-mw-section-id="1"] section[data-mw-section-id="2"] > p:nth-of-type(1)'
+
+const inheritedChromeSkin = inject(PROTOWIKI_CHROME_SKIN)
+const articleContainerSkin = computed(() => inheritedChromeSkin?.value ?? globalSkin.value)
 
 const articleContainerRef = ref<HTMLElement | null>(null)
 let observer: MutationObserver | null = null
@@ -264,8 +278,9 @@ function mountAttributionToolbar(mountEl: HTMLElement) {
 }
 
 /**
- * Outline is drawn outside the paragraph border box + outline-offset. Match the
- * tinted bar edges to that visual rectangle (percentage widths drift vs wiki layout).
+ * Match the tinted bar to the paragraph highlight. Mobile uses `outline` outside the
+ * border box (inflate). Desktop uses an in-flow `border` on the paragraph — `getBoundingClientRect`
+ * already matches the outer border box, so inflate is 0.
  */
 function syncAttributionLayout() {
   const root = articleContainerRef.value
@@ -281,17 +296,23 @@ function syncAttributionLayout() {
     return
   }
 
+  const skin = root.getAttribute('data-skin') === 'mobile' ? 'mobile' : 'desktop'
+
   const parent = p.parentElement as HTMLElement
   const pRect = p.getBoundingClientRect()
   const parentRect = parent.getBoundingClientRect()
   const vw = root.ownerDocument.defaultView
   const pst = vw?.getComputedStyle(p)
-  let outlineOffsetPx = pst ? Number.parseFloat(pst.outlineOffset) : NaN
-  let outlineWidthPx = pst ? Number.parseFloat(pst.outlineWidth) : NaN
-  if (Number.isNaN(outlineOffsetPx)) outlineOffsetPx = 6
-  if (Number.isNaN(outlineWidthPx)) outlineWidthPx = 2
 
-  const inflate = outlineOffsetPx + outlineWidthPx
+  let inflate = 0
+  if (skin === 'mobile') {
+    let outlineOffsetPx = pst ? Number.parseFloat(pst.outlineOffset) : NaN
+    let outlineWidthPx = pst ? Number.parseFloat(pst.outlineWidth) : NaN
+    if (Number.isNaN(outlineOffsetPx)) outlineOffsetPx = 6
+    if (Number.isNaN(outlineWidthPx)) outlineWidthPx = 2
+    inflate = outlineOffsetPx + outlineWidthPx
+  }
+
   const widthPx = pRect.width + 2 * inflate
 
   const parentDir = vw?.getComputedStyle(parent).direction === 'rtl' ? 'rtl' : 'ltr'
@@ -300,8 +321,10 @@ function syncAttributionLayout() {
       ? parentRect.right - pRect.right - inflate
       : pRect.left - parentRect.left - inflate
 
+  const finalWidth = Math.round(widthPx * 1000) / 1000
+
   attn.style.boxSizing = 'border-box'
-  attn.style.width = `${Math.round(widthPx * 1000) / 1000}px`
+  attn.style.width = `${finalWidth}px`
   attn.style.marginInlineStart = `${Math.round(insetStart * 1000) / 1000}px`
   attn.style.marginInlineEnd = '0'
 }
@@ -412,7 +435,7 @@ onUnmounted(() => {
 
 <template>
   <ChromeWrapper>
-    <div ref="articleContainerRef" class="article-container">
+    <div ref="articleContainerRef" class="article-container" :data-skin="articleContainerSkin">
       <Article content-type="mock" />
     </div>
   </ChromeWrapper>
@@ -423,15 +446,19 @@ onUnmounted(() => {
   padding: 0 var(--spacing-100);
 }
 
+/*
+ * [ArticleLiveContent] forces `overflow-x: auto` on desktop `.mw-parser-output` for wide tables.
+ * Negative margins on the highlight pull the bordered paragraph + bar past that box; without
+ * `visible`, the left (and corners of top/bottom) borders are clipped.
+ */
+.article-container[data-skin='desktop']
+  :deep(.article-content[data-skin='desktop'] .mw-parser-output) {
+  overflow-x: visible;
+}
+
+/* Shared attribution strip — skin-specific layout below. */
 .article-container :deep(.protowiki-demo-para-attribution) {
-  display: block;
-  clear: both;
-  margin-block: var(--spacing-35, 6px) var(--spacing-100, 16px);
-  margin-inline-end: 0;
   padding-block: 4px;
-  padding-left: 12px;
-  padding-right: 4px;
-  /* background-color: color-mix(in srgb, var(--color-progressive) 8%, var(--background-color-base)); */
   background-color: var(--background-color-progressive-subtle);
   font-size: var(--font-size-x-small);
   line-height: var(--line-height-small, 1.4);
@@ -440,6 +467,25 @@ onUnmounted(() => {
   border-top-left-radius: 0px;
   border-top-right-radius: 0px;
   border: 1px solid var(--border-color-subtle);
+}
+
+.article-container[data-skin='mobile'] :deep(.protowiki-demo-para-attribution) {
+  display: block;
+  clear: both;
+  margin-block: var(--spacing-35, 6px) var(--spacing-100, 16px);
+  margin-inline-end: 0;
+  padding-left: 12px;
+  padding-right: 4px;
+}
+
+.article-container[data-skin='desktop'] :deep(.protowiki-demo-para-attribution) {
+  display: flow-root;
+  margin-block-start: 0;
+  margin-block-end: var(--spacing-100, 16px);
+  margin-inline: 0;
+  max-width: none;
+  padding-inline: 12px;
+  padding-right: 4px;
 }
 
 .article-container :deep(.protowiki-demo-para-attribution__row) {
@@ -580,28 +626,58 @@ onUnmounted(() => {
   opacity: 0.85;
 }
 
-/* First body paragraph under History / "Early lives" — avoids outlining the whole H2 section. */
-.article-container
+/* Mobile: unchanged from pre–float-fix presentation (`outline` + negative margin). */
+.article-container[data-skin='mobile']
   :deep(
     .mw-parser-output
       section[data-mw-section-id='1']
       section[data-mw-section-id='2']
       > p:nth-of-type(1)
   ) {
-  /* background-color: color-mix(in srgb, var(--color-progressive) 8%, var(--background-color-base)); */
+  display: block;
   outline: 1px solid var(--border-color-subtle);
-  /* outline-offset: 6px; */
+  outline-offset: 0;
   border-radius: 2px;
-  /* background-color: var(--background-color-progressive-subtle); */
   padding: 8px;
   padding-top: 4px;
-  margin: -8px;
   padding-bottom: 6px;
+  margin: -8px;
   margin-bottom: -6px;
   margin-top: -6px;
   border-bottom-left-radius: 0px;
   border-bottom-right-radius: 0px;
 }
+
+/*
+ * Desktop: `border` instead of `outline` (avoids clip under `overflow-x` on `.mw-parser-output`).
+ * `flow-root` keeps the frame in the column *beside* the lead infobox so borders/background do
+ * not extend under the float (which would read as overlap). Trade-off: the box matches that
+ * narrow column width, not the full line length once text clears the float below.
+ * Horizontal margins stay 0 so alignment matches headings and the next paragraph; only vertical
+ * rhythm is tightened slightly.
+ */
+.article-container[data-skin='desktop']
+  :deep(
+    .mw-parser-output
+      section[data-mw-section-id='1']
+      section[data-mw-section-id='2']
+      > p:nth-of-type(1)
+  ) {
+  display: flow-root;
+  box-sizing: border-box;
+  outline: none;
+  border: 1px solid var(--border-color-subtle);
+  border-bottom: none;
+  border-radius: 2px;
+  border-bottom-left-radius: 0px;
+  border-bottom-right-radius: 0px;
+  padding: 8px;
+  padding-top: 4px;
+  padding-bottom: 6px;
+  margin: 0;
+  margin-block-end: 0;
+}
+
 </style>
 
 <!-- Teleported confetti layer is appended to document.body; keep unscoped. -->
