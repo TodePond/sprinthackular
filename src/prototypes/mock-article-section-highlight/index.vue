@@ -1,13 +1,6 @@
 <script setup lang="ts">
 import { CdxButton, CdxIcon, CdxMenuButton } from '@wikimedia/codex'
-import {
-  cdxIconClose,
-  cdxIconEdit,
-  cdxIconEllipsis,
-  cdxIconEye,
-  cdxIconHeart,
-  cdxIconHistory,
-} from '@wikimedia/codex-icons'
+import { cdxIconEllipsis, cdxIconHeart, cdxIconHistory } from '@wikimedia/codex-icons'
 import {
   computed,
   createApp,
@@ -18,6 +11,7 @@ import {
   onMounted,
   onUnmounted,
   ref,
+  type Ref,
 } from 'vue'
 
 import Article from '@/components/Article.vue'
@@ -46,19 +40,36 @@ let resizeObserver: ResizeObserver | null = null
 
 const TODEPOND_USER_HREF = 'https://en.wikipedia.org/wiki/User:Todepond'
 
+/** Real enwiki diff on [[Wet Leg]] for the "Early lives and formation" subsection (matches highlighted paragraph). */
+const WET_LEG_REVIEW_DIFF_HREF =
+  'https://en.wikipedia.org/w/index.php?title=Wet_Leg&diff=1347674623&oldid=1346958365'
+
+/** Section edit for "Early lives and formation" (`data-mw-section-id="2"` in the Wet Leg snapshot). */
+const WET_LEG_SECTION_EDIT_HREF =
+  'https://en.wikipedia.org/w/index.php?title=Wet_Leg&action=edit&section=2'
+
 /** Sub-app hosts for attribution toolbar (detached DOM cleaned in onMutation). */
 const attributionToolbarApps = new Map<HTMLElement, ReturnType<typeof createApp>>()
 
 const overflowMenuItems = [
-  { value: 'thanks', label: 'Thank', icon: cdxIconHeart },
-  { value: 'review', label: 'Review', icon: cdxIconEye },
-  { value: 'edit-further', label: 'Edit', icon: cdxIconEdit },
-  {
-    value: 'dont-show-again',
-    label: "Don't show again",
-    icon: cdxIconClose,
-  },
+  { value: 'thanks', label: 'Thank' },
+  { value: 'review', label: 'Review' },
+  { value: 'edit-further', label: 'Edit' },
+  { value: 'dismiss', label: 'Dismiss' },
 ]
+
+const highlightDismissed = ref(false)
+
+function toggleHeartThanks(thanksActive: Ref<boolean>, heartButtonRoot: Ref<HTMLElement | null>) {
+  const wasActive = thanksActive.value
+  thanksActive.value = !thanksActive.value
+  if (thanksActive.value && !wasActive) {
+    void nextTick(() => {
+      const btn = heartButtonRoot.value
+      if (btn) spawnHeartConfettiFromButton(btn)
+    })
+  }
+}
 
 /** Resolves Codex `--color-progressive` (link blue) for teleported confetti (probe avoids wrong inherited color). */
 function resolveProgressiveConfettiFill(doc: Document, mountParent: HTMLElement): string {
@@ -196,10 +207,36 @@ function removeHeartConfettiLayers() {
 
 const AttributionToolbar = defineComponent({
   name: 'AttributionToolbar',
-  setup() {
+  props: {
+    onDismiss: {
+      type: Function,
+      required: true,
+    },
+  },
+  setup(props: { onDismiss: () => void }) {
     const menuSelected = ref<string | null>(null)
     const thanksActive = ref(false)
     const heartButtonRoot = ref<HTMLElement | null>(null)
+
+    function handleOverflowSelected(v: string | null) {
+      menuSelected.value = v
+      if (!v) return
+
+      if (v === 'thanks') {
+        toggleHeartThanks(thanksActive, heartButtonRoot)
+      } else if (v === 'review') {
+        window.open(WET_LEG_REVIEW_DIFF_HREF, '_blank', 'noopener,noreferrer')
+      } else if (v === 'edit-further') {
+        window.open(WET_LEG_SECTION_EDIT_HREF, '_blank', 'noopener,noreferrer')
+      } else if (v === 'dismiss') {
+        props.onDismiss()
+      }
+
+      void nextTick(() => {
+        menuSelected.value = null
+      })
+    }
+
     return () =>
       h('span', { class: 'protowiki-demo-para-attribution__toolbar' }, [
         h(
@@ -219,14 +256,7 @@ const AttributionToolbar = defineComponent({
             'aria-pressed': thanksActive.value ? 'true' : 'false',
             'aria-label': thanksActive.value ? 'Remove thanks' : 'Give thanks',
             onClick: () => {
-              const wasActive = thanksActive.value
-              thanksActive.value = !thanksActive.value
-              if (thanksActive.value && !wasActive) {
-                void nextTick(() => {
-                  const btn = heartButtonRoot.value
-                  if (btn) spawnHeartConfettiFromButton(btn)
-                })
-              }
+              toggleHeartThanks(thanksActive, heartButtonRoot)
             },
           },
           {
@@ -239,9 +269,7 @@ const AttributionToolbar = defineComponent({
             weight: 'quiet',
             class: 'protowiki-demo-para-attribution__overflow-btn',
             selected: menuSelected.value,
-            'onUpdate:selected': (v: string | null) => {
-              menuSelected.value = v
-            },
+            'onUpdate:selected': handleOverflowSelected,
             menuItems: overflowMenuItems,
             'aria-label': 'More options',
           },
@@ -269,12 +297,26 @@ function unmountAllAttributionToolbars() {
   attributionToolbarApps.clear()
 }
 
-function mountAttributionToolbar(mountEl: HTMLElement) {
-  if (attributionToolbarApps.has(mountEl)) return
+function dismissAttributionToolbar(actionsMountEl: HTMLElement, attributionLineEl: HTMLElement) {
+  highlightDismissed.value = true
+  const app = attributionToolbarApps.get(actionsMountEl)
+  if (app) {
+    app.unmount()
+    attributionToolbarApps.delete(actionsMountEl)
+  }
+  if (attributionLineEl.isConnected) {
+    attributionLineEl.remove()
+  }
+}
 
-  const app = createApp(AttributionToolbar)
-  app.mount(mountEl)
-  attributionToolbarApps.set(mountEl, app)
+function mountAttributionToolbar(actionsMountEl: HTMLElement, attributionLineEl: HTMLElement) {
+  if (attributionToolbarApps.has(actionsMountEl)) return
+
+  const app = createApp(AttributionToolbar, {
+    onDismiss: () => dismissAttributionToolbar(actionsMountEl, attributionLineEl),
+  })
+  app.mount(actionsMountEl)
+  attributionToolbarApps.set(actionsMountEl, app)
 }
 
 /**
@@ -339,6 +381,7 @@ function scheduleSyncAttributionLayout() {
 function insertAttribution() {
   const root = articleContainerRef.value
   if (!root) return
+  if (highlightDismissed.value) return
 
   const p = root.querySelector<HTMLElement>(highlightParaSelector)
   if (!p?.parentElement) return
@@ -380,7 +423,7 @@ function insertAttribution() {
 
   p.insertAdjacentElement('afterend', line)
 
-  mountAttributionToolbar(actionsMount)
+  mountAttributionToolbar(actionsMount, line)
   scheduleSyncAttributionLayout()
 }
 
@@ -435,7 +478,12 @@ onUnmounted(() => {
 
 <template>
   <ChromeWrapper>
-    <div ref="articleContainerRef" class="article-container" :data-skin="articleContainerSkin">
+    <div
+      ref="articleContainerRef"
+      class="article-container"
+      :class="{ 'protowiki-demo-attribution-dismissed': highlightDismissed }"
+      :data-skin="articleContainerSkin"
+    >
       <Article content-type="mock" />
     </div>
   </ChromeWrapper>
@@ -592,17 +640,16 @@ onUnmounted(() => {
 }
 
 /*
- * CdxMenuButton uses useFloatingMenu({ useAvailableWidth: true, offset: 4 }), which sets a
- * very wide inline width and a 4px gap below the trigger. Tighten for this attribution strip.
+ * CdxMenuButton uses useFloatingMenu({ useAvailableWidth: true, offset: 4 }), which pins a
+ * very wide width on the menu shell. `min-width: 0` + `width: max-content` fixes that, but
+ * text-only rows then hug labels; add a soft floor so the panel does not feel cramped.
  */
 .article-container :deep(.protowiki-demo-para-attribution__overflow-btn .cdx-menu-button__menu) {
-  min-width: 0 !important;
   max-width: none !important;
 }
 
 .article-container :deep(.protowiki-demo-para-attribution__overflow-btn .cdx-menu) {
   width: max-content !important;
-  min-width: 0 !important;
   max-width: none !important;
   /* Codex offset is 4px; -4px can still leave a 1px subpixel seam vs the attribution strip. */
   margin-top: -5px !important;
@@ -678,6 +725,36 @@ onUnmounted(() => {
   margin-block-end: 0;
 }
 
+/* After Dismiss: strip prototype frame from the paragraph (attribution node is removed in JS). */
+.article-container.protowiki-demo-attribution-dismissed[data-skin='mobile']
+  :deep(
+    .mw-parser-output
+      section[data-mw-section-id='1']
+      section[data-mw-section-id='2']
+      > p:nth-of-type(1)
+  ) {
+  outline: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.article-container.protowiki-demo-attribution-dismissed[data-skin='desktop']
+  :deep(
+    .mw-parser-output
+      section[data-mw-section-id='1']
+      section[data-mw-section-id='2']
+      > p:nth-of-type(1)
+  ) {
+  display: block;
+  box-sizing: border-box;
+  outline: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+}
 </style>
 
 <!-- Teleported confetti layer is appended to document.body; keep unscoped. -->
