@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { CdxButton, CdxIcon, CdxMenuButton } from '@wikimedia/codex'
 import {
+  cdxIconClose,
   cdxIconEdit,
   cdxIconEllipsis,
   cdxIconEye,
@@ -35,9 +36,14 @@ const TODEPOND_USER_HREF = 'https://en.wikipedia.org/wiki/User:Todepond'
 const attributionToolbarApps = new Map<HTMLElement, ReturnType<typeof createApp>>()
 
 const overflowMenuItems = [
-  { value: 'thanks', label: 'Give thanks', icon: cdxIconHeart },
+  { value: 'thanks', label: 'Thank', icon: cdxIconHeart },
   { value: 'review', label: 'Review', icon: cdxIconEye },
-  { value: 'edit-further', label: 'Edit further', icon: cdxIconEdit },
+  { value: 'edit-further', label: 'Edit', icon: cdxIconEdit },
+  {
+    value: 'dont-show-again',
+    label: "Don't show again",
+    icon: cdxIconClose,
+  },
 ]
 
 /** Resolves Codex `--color-progressive` (link blue) for teleported confetti (probe avoids wrong inherited color). */
@@ -422,12 +428,18 @@ onUnmounted(() => {
   clear: both;
   margin-block: var(--spacing-35, 6px) var(--spacing-100, 16px);
   margin-inline-end: 0;
-  padding-block: var(--spacing-35, 6px);
-  padding-inline: var(--spacing-50, 8px);
-  background-color: color-mix(in srgb, var(--color-progressive) 8%, var(--background-color-base));
+  padding-block: 4px;
+  padding-left: 12px;
+  padding-right: 4px;
+  /* background-color: color-mix(in srgb, var(--color-progressive) 8%, var(--background-color-base)); */
+  background-color: var(--background-color-progressive-subtle);
   font-size: var(--font-size-x-small);
   line-height: var(--line-height-small, 1.4);
   color: var(--color-subtle);
+  border-radius: 2px;
+  border-top-left-radius: 0px;
+  border-top-right-radius: 0px;
+  border: 1px solid var(--border-color-subtle);
 }
 
 .article-container :deep(.protowiki-demo-para-attribution__row) {
@@ -463,7 +475,7 @@ onUnmounted(() => {
 .article-container :deep(.protowiki-demo-para-attribution__toolbar) {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  /* gap: 2px; */
 }
 
 /* Icon-only quiet controls — slightly larger than the previous x-small strip. */
@@ -519,10 +531,18 @@ onUnmounted(() => {
   padding-block: var(--spacing-35, 6px);
 }
 
-/* Global `ul, ol` adds padding-inline-start; Codex menu listbox is a `ul` and inherits it. */
+/*
+ * Global `ul, ol` / `li` rules add padding-inline-start and vertical margins; Codex menus use
+ * `ul.cdx-menu__listbox` > `li.cdx-menu-item` and inherit the extra gap above/below the list.
+ */
 .article-container :deep(.cdx-menu__listbox) {
   margin-inline-start: 0;
+  margin-block: 0;
   padding-inline-start: 0;
+}
+
+.article-container :deep(.cdx-menu__listbox .cdx-menu-item) {
+  margin-block: 0;
 }
 
 /*
@@ -538,7 +558,8 @@ onUnmounted(() => {
   width: max-content !important;
   min-width: 0 !important;
   max-width: none !important;
-  margin-top: -4px !important;
+  /* Codex offset is 4px; -4px can still leave a 1px subpixel seam vs the attribution strip. */
+  margin-top: -5px !important;
 }
 
 .article-container
@@ -568,8 +589,18 @@ onUnmounted(() => {
       > p:nth-of-type(1)
   ) {
   /* background-color: color-mix(in srgb, var(--color-progressive) 8%, var(--background-color-base)); */
-  outline: 1px solid var(--border-color-progressive);
-  outline-offset: var(--spacing-35, 6px);
+  outline: 1px solid var(--border-color-subtle);
+  /* outline-offset: 6px; */
+  border-radius: 2px;
+  /* background-color: var(--background-color-progressive-subtle); */
+  padding: 8px;
+  padding-top: 4px;
+  margin: -8px;
+  padding-bottom: 6px;
+  margin-bottom: -6px;
+  margin-top: -6px;
+  border-bottom-left-radius: 0px;
+  border-bottom-right-radius: 0px;
 }
 </style>
 
