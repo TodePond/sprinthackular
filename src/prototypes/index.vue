@@ -24,6 +24,7 @@ interface PrototypeEntry {
   path: string
   title: string
   description?: string
+  bucket: 'regular' | 'template' | 'example'
 }
 
 function humanize(path: string): string {
@@ -58,27 +59,54 @@ const prototypes = computed<PrototypeEntry[]>(() => {
         typeof meta.description === 'string' && meta.description.length > 0
           ? meta.description
           : undefined
+      const title = meta.title ?? humanize(route.path)
       return {
         path: route.path,
-        title: meta.title ?? humanize(route.path),
+        title,
         description,
+        bucket: prototypeBucket(title),
       }
     })
     .sort((a, b) => {
-      const ba = prototypeBucket(a.title)
-      const bb = prototypeBucket(b.title)
+      const ba = a.bucket
+      const bb = b.bucket
       const cmpBucket = bucketOrder[ba] - bucketOrder[bb]
       if (cmpBucket !== 0) return cmpBucket
       return a.title.localeCompare(b.title, undefined, { sensitivity: 'base' })
     })
 })
+
+const regularPrototypes = computed(() =>
+  prototypes.value.filter((e) => e.bucket === 'regular'),
+)
+
+const templateAndExamplePrototypes = computed(() =>
+  prototypes.value.filter((e) => e.bucket !== 'regular'),
+)
+
+const showBucketDivider = computed(
+  () => regularPrototypes.value.length > 0 && templateAndExamplePrototypes.value.length > 0,
+)
 </script>
 
 <template>
   <PlainWrapper heading="ProtoWiki">
     <div class="prototype-index">
-      <div class="prototype-index__list" role="list">
-        <div v-for="entry in prototypes" :key="entry.path" class="prototype-index__card" role="listitem">
+      <div class="prototype-index__list">
+        <div v-for="entry in regularPrototypes" :key="entry.path" class="prototype-index__card">
+          <CdxCard :url="router.resolve({ path: entry.path }).href">
+            <template #title>{{ entry.title }}</template>
+            <template v-if="entry.description" #description>{{ entry.description }}</template>
+          </CdxCard>
+        </div>
+
+        <hr v-if="showBucketDivider" class="prototype-index__divider" />
+
+        <div
+          v-for="entry in templateAndExamplePrototypes"
+          :key="entry.path"
+          class="prototype-index__card"
+        >
           <CdxCard :url="router.resolve({ path: entry.path }).href">
             <template #title>{{ entry.title }}</template>
             <template v-if="entry.description" #description>{{ entry.description }}</template>
@@ -93,10 +121,16 @@ const prototypes = computed<PrototypeEntry[]>(() => {
 .prototype-index__list {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-75, 12px);
+  gap: var(--spacing-75);
 }
 
 .prototype-index__card {
   min-width: 0;
+}
+
+.prototype-index__divider {
+  margin: var(--spacing-50) 0;
+  border: 0;
+  border-top: 1px solid var(--border-color-subtle);
 }
 </style>
