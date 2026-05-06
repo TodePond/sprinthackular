@@ -11,7 +11,7 @@ definePage({
   meta: {
     title: 'Thanks patrol',
     description:
-      'Merged recent revisions across configurable articles (comma-separated); registered editors with 0–100 inclusive edits (IPs when a count is available); no temporary accounts.',
+      'Edits that could do with some thanks.',
   },
 })
 
@@ -59,7 +59,10 @@ function onThanksHeartClick(ev: MouseEvent, r: RevisionRow): void {
     next.delete(k)
   } else {
     next.add(k)
-    spawnHeartConfettiFromButton(el)
+    spawnHeartConfettiFromButton(el, {
+      colorVar: '--color-destructive',
+      colorFallback: '#bf3c2c',
+    })
   }
   thankedRevKeys.value = next
 }
@@ -580,10 +583,10 @@ onUnmounted(() => {
             placeholder="Article title, Another article, …"
           />
         </label>
-        <p class="thanks-patrol__pages-hint">
+        <!-- <p class="thanks-patrol__pages-hint">
           Comma-separated page titles. Saved in local storage. If the field is empty, the default
           demo articles are used.
-        </p>
+        </p> -->
       </div>
 
       <CdxMessage v-if="error" type="error" :allow-user-dismiss="false">
@@ -809,7 +812,7 @@ onUnmounted(() => {
 }
 
 .thanks-patrol__heart-btn--filled .thanks-patrol__heart-glyph {
-  color: var(--color-progressive);
+  color: var(--color-destructive);
 }
 
 .thanks-patrol__row--dimmed {

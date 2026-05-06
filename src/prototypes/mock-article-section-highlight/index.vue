@@ -394,7 +394,7 @@ onUnmounted(() => {
   border-radius: 2px;
   border-top-left-radius: 0px;
   border-top-right-radius: 0px;
-  border: 1px solid var(--border-color-subtle);
+  border: 1px solid var(--background-color-progressive-subtle);
 }
 
 .article-container[data-skin='mobile'] :deep(.protowiki-demo-para-attribution) {
@@ -562,7 +562,7 @@ onUnmounted(() => {
       > p:nth-of-type(1)
   ) {
   display: block;
-  outline: 1px solid var(--border-color-subtle);
+  outline: 1px solid var(--border-color-progressive);
   outline-offset: 0;
   border-radius: 2px;
   padding: 8px;
@@ -593,7 +593,7 @@ onUnmounted(() => {
   display: flow-root;
   box-sizing: border-box;
   outline: none;
-  border: 1px solid var(--border-color-subtle);
+  border: 1px solid var(--border-color-progressive);
   border-bottom: none;
   border-radius: 2px;
   border-bottom-left-radius: 0px;

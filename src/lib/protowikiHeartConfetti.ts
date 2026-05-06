@@ -1,19 +1,35 @@
 /**
- * Heart burst confetti (Recently edited paragraph prototype). Appends a fixed
- * overlay to `document.body`; uses Web Animations API.
+ * Heart burst confetti (prototypes). Appends a fixed overlay to `document.body`;
+ * uses Web Animations API.
  */
 import { cdxIconHeart } from '@wikimedia/codex-icons'
 
-/** Resolves Codex `--color-progressive` (link blue) for teleported confetti (probe avoids wrong inherited color). */
-function resolveProgressiveConfettiFill(doc: Document, mountParent: HTMLElement): string {
+export type HeartConfettiFillOptions = {
+  /** Codex or app CSS custom property, e.g. `--color-progressive`. */
+  colorVar: string
+  /** Fallback when the var is missing (hex or CSS color). */
+  colorFallback: string
+}
+
+const DEFAULT_CONFETTI_FILL: HeartConfettiFillOptions = {
+  colorVar: '--color-progressive',
+  colorFallback: '#3366cc',
+}
+
+/** Resolves a Codex colour token for teleported confetti (probe avoids wrong inherited color). */
+function resolveConfettiFill(
+  doc: Document,
+  mountParent: HTMLElement,
+  fill: HeartConfettiFillOptions,
+): string {
   const probe = doc.createElement('span')
   probe.setAttribute('aria-hidden', 'true')
-  probe.style.cssText =
-    'position:absolute;left:0;top:0;width:0;height:0;overflow:hidden;pointer-events:none;color:var(--color-progressive, #3366cc)'
+  const { colorVar, colorFallback } = fill
+  probe.style.cssText = `position:absolute;left:0;top:0;width:0;height:0;overflow:hidden;pointer-events:none;color:var(${colorVar}, ${colorFallback})`
   mountParent.appendChild(probe)
   const resolved = getComputedStyle(probe).color
   probe.remove()
-  return resolved || 'rgb(51, 102, 204)'
+  return resolved || colorFallback
 }
 
 function heartConfettiReducedMotion(): boolean {
@@ -22,9 +38,14 @@ function heartConfettiReducedMotion(): boolean {
 }
 
 /** Burst of small hearts from the button centre (fixed overlay; prototype-only). */
-export function spawnHeartConfettiFromButton(buttonEl: HTMLElement): void {
+export function spawnHeartConfettiFromButton(
+  buttonEl: HTMLElement,
+  fill?: HeartConfettiFillOptions,
+): void {
   if (typeof document === 'undefined') return
   if (heartConfettiReducedMotion()) return
+
+  const fillResolved = fill ?? DEFAULT_CONFETTI_FILL
 
   const rect = buttonEl.getBoundingClientRect()
   const cx = rect.left + rect.width / 2
@@ -35,7 +56,7 @@ export function spawnHeartConfettiFromButton(buttonEl: HTMLElement): void {
   layer.setAttribute('aria-hidden', 'true')
   document.body.appendChild(layer)
 
-  const confettiFill = resolveProgressiveConfettiFill(buttonEl.ownerDocument, layer)
+  const confettiFill = resolveConfettiFill(buttonEl.ownerDocument, layer, fillResolved)
 
   const count = 10
   let finished = 0
@@ -78,7 +99,7 @@ export function spawnHeartConfettiFromButton(buttonEl: HTMLElement): void {
     piece.style.width = `${size}px`
     piece.style.height = `${size}px`
     piece.style.color = confettiFill
-    /* No `cdx-icon` wrapper — Codex forces `.cdx-icon { color: var(--color-base) }`; we want progressive blue. */
+    /* No `cdx-icon` wrapper — Codex forces `.cdx-icon { color: var(--color-base) }`; use probed fill. */
     piece.innerHTML = `<span class="protowiki-demo-heart-confetti-piece__glyph" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" width="20" height="20" fill="currentColor">${cdxIconHeart}</svg></span>`
 
     layer.appendChild(piece)
