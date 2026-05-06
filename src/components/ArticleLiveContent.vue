@@ -358,7 +358,7 @@ async function syncMobileParserDom() {
   enhanceMobileSectionHeadings(el)
 }
 
-watch([effectiveSkin, renderedHtml], syncMobileParserDom, { flush: 'post' })
+watch([effectiveSkin, renderedHtml], syncMobileParserDom, { flush: 'post', immediate: true })
 
 watch(
   () => [props.host, props.title, props.html] as const,
