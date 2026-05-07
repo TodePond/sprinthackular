@@ -22,6 +22,7 @@ export const thanksModuleFeedProps = {
   protowikiThanksPatrolGroupSamePageEdits: true,
   /** Card chrome is not a giant link; only each diff row (delta + summary) opens the revision diff. */
   protowikiThanksPatrolDiffOnlyClick: true,
-  /** Four blue badge variants in Figma (article quality, good faith, reference, low risk) await patrol signals; not in this feed yet. */
+  /** Lift Wing + edit-types + article-quality pills; exclude high revert risk / low good faith. */
+  protowikiThanksPatrolSignalBadges: true,
   source: 'recentChanges' as const,
 }

@@ -52,211 +52,504 @@
           <li
             v-for="change in [feedItem.change]"
             :key="`${change.pageName}-${change.timestamp}-${change.id}`"
-          class="review-changes__item"
-          :class="{
-            'review-changes__item--last-clicked':
-              viewedBorder && change.id === lastClickedRevisionId,
-            'review-changes__item--unviewed': unviewedBorder && !isRevisionViewed(change),
-          }"
-        >
-          <span
-            v-if="viewedBorder && change.id === lastClickedRevisionId"
-            class="review-changes__item-line review-changes__item-line--last-clicked review-changes__item-line--left"
-            aria-hidden="true"
-          />
-          <span
-            v-if="unviewedBorder && !isRevisionViewed(change)"
-            class="review-changes__item-line review-changes__item-line--unviewed review-changes__item-line--left"
-            aria-hidden="true"
-          />
-          <component
-            :is="singleThanksOuterTag(change)"
-            :href="singleThanksOuterHref(change)"
-            :target="thanksPatrolDiffOnlyInteraction ? undefined : change.pageName ? '_blank' : undefined"
-            :rel="thanksPatrolDiffOnlyInteraction ? undefined : change.pageName ? 'noopener noreferrer' : undefined"
-            class="review-changes__item-link"
+            class="review-changes__item"
             :class="{
-              'review-changes__item-link--not-link': !change.pageName || thanksPatrolDiffOnlyInteraction,
-              'review-changes__item-link--thanks-patrol-diff-only-shell': thanksPatrolDiffOnlyInteraction,
-              'review-changes__item-link--revision-viewed': isRevisionViewed(change),
-              'review-changes__item-link--unviewed':
-                highlightUnviewed &&
-                !isRevisionViewed(change) &&
-                !thanksPatrolDiffOnlyInteraction,
-              'review-changes__item-link--last-clicked':
-                lastClickedHighlight && change.id === lastClickedRevisionId,
-              'review-changes__item-link--primary-unviewed-tone':
-                !thanksPatrolDiffOnlyInteraction &&
-                !isRevisionViewed(change) &&
-                getPrimaryFeedFlag(change)?.tier === 'toneReference',
-              'review-changes__item-link--primary-unviewed-revert':
-                !thanksPatrolDiffOnlyInteraction &&
-                !isRevisionViewed(change) &&
-                isPrimaryRevertVeryHigh(change),
-              'review-changes__item-link--primary-unviewed-revert-warn':
-                !thanksPatrolDiffOnlyInteraction &&
-                !isRevisionViewed(change) &&
-                isPrimaryRevertHigh(change),
-              'review-changes__item-link--primary-unviewed-recommendation':
-                !thanksPatrolDiffOnlyInteraction &&
-                !isRevisionViewed(change) &&
-                getPrimaryFeedFlag(change)?.tier === 'recommendation',
-              'review-changes__item-link--primary-unviewed-new-editor':
-                !isRevisionViewed(change) &&
-                getPrimaryFeedFlag(change)?.tier === 'newEditor',
+              'review-changes__item--last-clicked':
+                viewedBorder && change.id === lastClickedRevisionId,
+              'review-changes__item--unviewed': unviewedBorder && !isRevisionViewed(change),
             }"
-            :aria-label="
-              thanksPatrolDiffOnlyInteraction || !change.pageName
-                ? undefined
-                : `Open diff for ${change.pageName ?? 'page'}`
-            "
-            @click="
-              !thanksPatrolDiffOnlyInteraction && change.pageName && markRevisionAsViewed(change)
-            "
-            @pointerdown.capture="onRevisionShellPointerDown"
-            @mousedown.capture="onRevisionShellMouseDown"
           >
-            <div
-              class="review-changes__item-header"
+            <span
+              v-if="viewedBorder && change.id === lastClickedRevisionId"
+              class="review-changes__item-line review-changes__item-line--last-clicked review-changes__item-line--left"
+              aria-hidden="true"
+            />
+            <span
+              v-if="unviewedBorder && !isRevisionViewed(change)"
+              class="review-changes__item-line review-changes__item-line--unviewed review-changes__item-line--left"
+              aria-hidden="true"
+            />
+            <component
+              :is="singleThanksOuterTag(change)"
+              :href="singleThanksOuterHref(change)"
+              :target="
+                thanksPatrolDiffOnlyInteraction ? undefined : change.pageName ? '_blank' : undefined
+              "
+              :rel="
+                thanksPatrolDiffOnlyInteraction
+                  ? undefined
+                  : change.pageName
+                    ? 'noopener noreferrer'
+                    : undefined
+              "
+              class="review-changes__item-link"
               :class="{
-                'review-changes__item-header--has-primary-flag':
-                  !!getPrimaryFeedFlag(change) &&
-                  !(
-                    protowikiThanksPatrolCompactCard &&
-                    getPrimaryFeedFlag(change)?.tier === 'newEditor'
-                  ),
+                'review-changes__item-link--not-link':
+                  !change.pageName || thanksPatrolDiffOnlyInteraction,
+                'review-changes__item-link--thanks-patrol-diff-only-shell':
+                  thanksPatrolDiffOnlyInteraction,
+                'review-changes__item-link--revision-viewed': isRevisionViewed(change),
+                'review-changes__item-link--unviewed':
+                  highlightUnviewed &&
+                  !isRevisionViewed(change) &&
+                  !thanksPatrolDiffOnlyInteraction,
+                'review-changes__item-link--last-clicked':
+                  lastClickedHighlight && change.id === lastClickedRevisionId,
+                'review-changes__item-link--primary-unviewed-tone':
+                  !thanksPatrolDiffOnlyInteraction &&
+                  !isRevisionViewed(change) &&
+                  getPrimaryFeedFlag(change)?.tier === 'toneReference',
+                'review-changes__item-link--primary-unviewed-revert':
+                  !thanksPatrolDiffOnlyInteraction &&
+                  !isRevisionViewed(change) &&
+                  isPrimaryRevertVeryHigh(change),
+                'review-changes__item-link--primary-unviewed-revert-warn':
+                  !thanksPatrolDiffOnlyInteraction &&
+                  !isRevisionViewed(change) &&
+                  isPrimaryRevertHigh(change),
+                'review-changes__item-link--primary-unviewed-recommendation':
+                  !thanksPatrolDiffOnlyInteraction &&
+                  !isRevisionViewed(change) &&
+                  getPrimaryFeedFlag(change)?.tier === 'recommendation',
+                'review-changes__item-link--primary-unviewed-new-editor':
+                  !isRevisionViewed(change) && getPrimaryFeedFlag(change)?.tier === 'newEditor',
+                'review-changes__item-link--thanks-patrol-signal-flag':
+                  thanksPatrolSignalBadgesEnabled &&
+                  !!thanksPatrolResolvedSignalBadgeForSingle(change),
               }"
+              :aria-label="
+                thanksPatrolDiffOnlyInteraction || !change.pageName
+                  ? undefined
+                  : `Open diff for ${change.pageName ?? 'page'}`
+              "
+              @click="
+                !thanksPatrolDiffOnlyInteraction && change.pageName && markRevisionAsViewed(change)
+              "
+              @pointerdown.capture="onRevisionShellPointerDown"
+              @mousedown.capture="onRevisionShellMouseDown"
             >
-              <CdxIcon
-                v-if="
-                  getPrimaryFeedFlag(change) &&
-                  !(
-                    protowikiThanksPatrolCompactCard &&
-                    getPrimaryFeedFlag(change)?.tier === 'newEditor'
-                  )
-                "
-                :icon="primaryFlagCdxIcon(change)"
-                size="medium"
-                :class="['review-changes__primary-flag-icon', primaryFlagIconModifierClass(change)]"
-                aria-hidden="true"
-              />
-              <CdxIcon
-                v-else-if="showArrowInTopRight"
-                :icon="cdxIconArrowNext"
-                size="medium"
-                class="review-changes__arrow-in-top-right"
-                aria-hidden="true"
-              />
-              <span
-                class="review-changes__page-cell"
+              <div
+                class="review-changes__item-header"
                 :class="{
-                  'review-changes__page-cell--thanks-patrol-compact':
-                    protowikiThanksPatrolCompactCard,
+                  'review-changes__item-header--has-primary-flag':
+                    !!getPrimaryFeedFlag(change) &&
+                    !(
+                      protowikiThanksPatrolCompactCard &&
+                      getPrimaryFeedFlag(change)?.tier === 'newEditor'
+                    ),
                 }"
               >
-                <template v-if="protowikiThanksPatrolCompactCard">
-                  <div class="review-changes__thanks-patrol-top-row">
-                    <span class="review-changes__thanks-patrol-headline">
+                <CdxIcon
+                  v-if="
+                    getPrimaryFeedFlag(change) &&
+                    !(
+                      protowikiThanksPatrolCompactCard &&
+                      getPrimaryFeedFlag(change)?.tier === 'newEditor'
+                    )
+                  "
+                  :icon="primaryFlagCdxIcon(change)"
+                  size="medium"
+                  :class="[
+                    'review-changes__primary-flag-icon',
+                    primaryFlagIconModifierClass(change),
+                  ]"
+                  aria-hidden="true"
+                />
+                <CdxIcon
+                  v-else-if="showArrowInTopRight"
+                  :icon="cdxIconArrowNext"
+                  size="medium"
+                  class="review-changes__arrow-in-top-right"
+                  aria-hidden="true"
+                />
+                <span
+                  class="review-changes__page-cell"
+                  :class="{
+                    'review-changes__page-cell--thanks-patrol-compact':
+                      protowikiThanksPatrolCompactCard,
+                  }"
+                >
+                  <template v-if="protowikiThanksPatrolCompactCard">
+                    <div class="review-changes__thanks-patrol-top-row">
+                      <span class="review-changes__thanks-patrol-headline">
+                        <a
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          :href="wiki.getUserUrl(change.user.name)"
+                          class="review-changes__user review-changes__thanks-patrol-user-link"
+                          @click.stop
+                          ><strong
+                            >{{ showUsernameAtPrefix ? '@' : '' }}{{ change.user.name }}</strong
+                          ></a
+                        ><span
+                          class="review-changes__thanks-patrol-edited"
+                          :class="{
+                            'review-changes__thanks-patrol-edited--visited':
+                              isRevisionViewed(change),
+                          }"
+                        >
+                          edited </span
+                        ><a
+                          v-if="change.pageName"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          :href="wiki.getPageUrl(change.pageName)"
+                          class="review-changes__thanks-patrol-page-link"
+                          @click.stop
+                          ><strong>{{ change.pageName }}</strong></a
+                        >
+                      </span>
+                      <span
+                        v-if="
+                          thanksPatrolSignalBadgesEnabled &&
+                          thanksPatrolResolvedSignalBadgeForSingle(change)
+                        "
+                        class="review-changes__thanks-patrol-signal-badge"
+                      >
+                        <CdxIcon
+                          :icon="
+                            thanksPatrolSignalBadgeIcon(
+                              thanksPatrolResolvedSignalBadgeForSingle(change)!.kind,
+                            )
+                          "
+                          size="small"
+                          class="review-changes__thanks-patrol-signal-badge-icon"
+                          aria-hidden="true"
+                        />
+                        <span class="review-changes__thanks-patrol-signal-badge-text">{{
+                          thanksPatrolResolvedSignalBadgeForSingle(change)!.label
+                        }}</span>
+                      </span>
+                      <span
+                        v-else-if="getPrimaryFeedFlag(change)?.tier === 'newEditor'"
+                        class="review-changes__thanks-patrol-new-editor-badge"
+                        aria-hidden="true"
+                      >
+                        <Sprout
+                          class="review-changes__thanks-patrol-badge-sprout"
+                          :size="14"
+                          :stroke-width="2"
+                          aria-hidden="true"
+                        />
+                        <span class="review-changes__thanks-patrol-new-editor-badge-text"
+                          >New editor</span
+                        >
+                      </span>
+                    </div>
+                    <component
+                      :is="thanksPatrolDiffOnlyInteraction && change.pageName ? 'a' : 'div'"
+                      class="review-changes__summary review-changes__summary--thanks-patrol-second-line"
+                      :class="{
+                        'review-changes__thanks-patrol-summary-hit':
+                          thanksPatrolDiffOnlyInteraction && change.pageName,
+                        'review-changes__thanks-patrol-summary-hit--revision-viewed':
+                          thanksPatrolDiffOnlyInteraction &&
+                          change.pageName &&
+                          isRevisionViewed(change),
+                        'review-changes__thanks-patrol-single-diff-hit':
+                          thanksPatrolDiffOnlyInteraction && change.pageName,
+                      }"
+                      :href="
+                        thanksPatrolDiffOnlyInteraction && change.pageName
+                          ? wiki.getRevisionUrl(change.id, change.pageName)
+                          : undefined
+                      "
+                      :target="
+                        thanksPatrolDiffOnlyInteraction && change.pageName ? '_blank' : undefined
+                      "
+                      :rel="
+                        thanksPatrolDiffOnlyInteraction && change.pageName
+                          ? 'noopener noreferrer'
+                          : undefined
+                      "
+                      :aria-label="
+                        thanksPatrolDiffOnlyInteraction && change.pageName
+                          ? `Open diff for ${change.pageName ?? 'page'}`
+                          : undefined
+                      "
+                      @click="
+                        thanksPatrolDiffOnlyInteraction &&
+                        change.pageName &&
+                        markRevisionAsViewed(change)
+                      "
+                    >
+                      <template v-if="showDelta">
+                        <span
+                          class="review-changes__summary-prefix"
+                          :class="wiki.getDeltaClass(change.delta ?? 0, false)"
+                          >{{ formatDelta(change.delta) }}</span
+                        >
+                        <span
+                          v-if="
+                            !!(change?.summary?.comment || change?.comment) || showEmptyEditSummary
+                          "
+                          class="review-changes__summary-sep"
+                          aria-hidden="true"
+                          >&nbsp;·&nbsp;</span
+                        ></template
+                      ><span
+                        v-if="!!(change?.summary?.comment || change?.comment)"
+                        class="review-changes__thanks-patrol-summary-led"
+                        ><CdxIcon
+                          :icon="cdxIconEdit"
+                          size="x-small"
+                          :class="[
+                            'review-changes__thanks-patrol-summary-icon',
+                            isRevisionViewed(change)
+                              ? 'review-changes__thanks-patrol-summary-icon--subtle'
+                              : 'review-changes__thanks-patrol-summary-icon--emphasized',
+                          ]"
+                          aria-hidden="true"
+                        /><template v-if="change?.summary?.comment"
+                          ><span
+                            v-if="showDelta"
+                            :class="[
+                              'review-changes__comment',
+                              {
+                                'review-changes__comment--no-cutout': !showSummaryCutout,
+                              },
+                            ]"
+                            v-html="change.summary.comment"
+                          ></span
+                          ><span
+                            v-else
+                            :class="[
+                              'review-changes__comment',
+                              {
+                                'review-changes__comment--no-cutout': !showSummaryCutout,
+                              },
+                            ]"
+                            v-html="change.summary.comment"
+                          ></span></template
+                        ><span
+                          v-else-if="change?.comment"
+                          :class="[
+                            'review-changes__comment',
+                            {
+                              'review-changes__comment--no-cutout': !showSummaryCutout,
+                            },
+                          ]"
+                          >{{ change.comment }}</span
+                        ></span
+                      >
+                    </component>
+                  </template>
+                  <template v-else>
+                    <template v-if="unifiedTitle">
+                      <FeedItemTitle
+                        :page-name="change.pageName ?? ''"
+                        :short-description="
+                          change.pageName
+                            ? (shortDescriptionByPage.get(change.pageName) ?? null)
+                            : null
+                        "
+                        :timestamp="change.timestamp"
+                        :formatted-timestamp="
+                          timestampPosition === 'topRight'
+                            ? simplifiedTimestamp
+                              ? formatRelativeTime(change.timestamp)
+                              : `${formatTime(change.timestamp)}, ${formatTimeLabel(change.timestamp)}`
+                            : undefined
+                        "
+                        :item-source="getItemSource(change)"
+                        :show-source-icons="showSourceIcons"
+                        :show-short-description="showShortDescription"
+                        :show-short-description-separator="showShortDescriptionSeparator"
+                      />
+                    </template>
+                    <template v-else>
+                      <span
+                        class="review-changes__page-cell-heading review-changes__page-cell-heading--separate"
+                      >
+                        <CdxIcon
+                          v-if="showSourceIcons && getItemSource(change)"
+                          :icon="
+                            getItemSource(change) === 'pagesAndUsers' ||
+                            getItemSource(change) === 'pagesAndUsersLatest'
+                              ? cdxIconUnStar
+                              : getItemSource(change) === 'relatedChanges'
+                                ? cdxIconLightbulb
+                                : getItemSource(change) === 'collaborators'
+                                  ? cdxIconUserAvatar
+                                  : getItemSource(change) === 'pagesIveEdited'
+                                    ? cdxIconEdit
+                                    : cdxIconClock
+                          "
+                          size="x-small"
+                          :class="[
+                            'review-changes__source-icon',
+                            `review-changes__source-icon--${getItemSource(change)}`,
+                          ]"
+                          :aria-label="
+                            getItemSource(change) === 'pagesAndUsers'
+                              ? 'Watchlist'
+                              : getItemSource(change) === 'pagesAndUsersLatest'
+                                ? 'Watchlist (latest revision)'
+                                : getItemSource(change) === 'relatedChanges'
+                                  ? 'Related changes'
+                                  : getItemSource(change) === 'collaborators'
+                                    ? 'Mentor'
+                                    : getItemSource(change) === 'pagesIveEdited'
+                                      ? 'Pages you have edited'
+                                      : 'Risky'
+                          "
+                        />
+                        <span class="review-changes__page">{{ change.pageName }}</span>
+                        <span
+                          v-if="
+                            showShortDescription &&
+                            change.pageName &&
+                            shortDescriptionByPage.get(change.pageName)
+                          "
+                          class="review-changes__short-desc"
+                          :class="{
+                            'review-changes__short-desc--no-separator':
+                              !showShortDescriptionSeparator,
+                          }"
+                        >
+                          {{ shortDescriptionByPage.get(change.pageName) }}
+                        </span>
+                      </span>
+                    </template>
+                    <div
+                      v-if="showSourceSubtitles && getItemSource(change)"
+                      class="review-changes__source-subtitle"
+                    >
+                      {{
+                        getItemSource(change) === 'pagesAndUsers'
+                          ? 'From your watchlist'
+                          : getItemSource(change) === 'pagesAndUsersLatest'
+                            ? 'From your watchlist (latest)'
+                            : getItemSource(change) === 'relatedChanges'
+                              ? 'From recommendations'
+                              : getItemSource(change) === 'collaborators'
+                                ? 'By your mentor'
+                                : getItemSource(change) === 'pagesIveEdited'
+                                  ? "Pages you've edited"
+                                  : 'From recent changes'
+                      }}
+                    </div>
+                    <span
+                      class="review-changes__user-time-group"
+                      :class="{
+                        'review-changes__user-time-group--timestamp-below':
+                          timestampPosition === 'belowUsername',
+                      }"
+                    >
+                      <span v-if="showUserIcon" class="review-changes__user-row">
+                        <CdxButton
+                          weight="quiet"
+                          class="review-changes__user-icon-btn"
+                          :aria-label="`User: ${change.user.name}`"
+                          size="small"
+                          @click.stop.prevent="openUserPopover($event, change)"
+                        >
+                          <CdxIcon
+                            class="review-changes__user-icon"
+                            :icon="
+                              wiki.isTemporaryAccount(change.user.name)
+                                ? cdxIconUserTemporary
+                                : cdxIconUserAvatar
+                            "
+                            size="x-small"
+                            aria-hidden="true"
+                          />
+                        </CdxButton>
+                        <a
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          :href="wiki.getUserUrl(change.user.name)"
+                          class="review-changes__user"
+                          @click.stop
+                        >
+                          {{ showUsernameAtPrefix ? '@' : '' }}{{ change.user.name }}
+                        </a>
+                      </span>
                       <a
+                        v-else
                         target="_blank"
                         rel="noopener noreferrer"
                         :href="wiki.getUserUrl(change.user.name)"
-                        class="review-changes__user review-changes__thanks-patrol-user-link"
+                        class="review-changes__user"
                         @click.stop
-                        ><strong>{{ showUsernameAtPrefix ? '@' : '' }}{{ change.user.name }}</strong></a
-                      ><span
-                        class="review-changes__thanks-patrol-edited"
-                        :class="{
-                          'review-changes__thanks-patrol-edited--visited': isRevisionViewed(change),
-                        }"
-                        > edited </span
-                      ><a
-                        v-if="change.pageName"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        :href="wiki.getPageUrl(change.pageName)"
-                        class="review-changes__thanks-patrol-page-link"
-                        @click.stop
-                        ><strong>{{ change.pageName }}</strong></a
                       >
+                        {{ showUsernameAtPrefix ? '@' : '' }}{{ change.user.name }}
+                      </a>
+                      <template v-if="timestampPosition === 'rightOfUsername'">
+                        <span class="review-changes__time-sep" aria-hidden="true"> · </span>
+                        <time :datetime="change.timestamp" class="review-changes__time">
+                          {{
+                            simplifiedTimestamp
+                              ? formatRelativeTime(change.timestamp)
+                              : `${formatTime(change.timestamp)}, ${formatTimeLabel(change.timestamp)}`
+                          }}
+                        </time>
+                      </template>
+                      <template v-else-if="timestampPosition === 'belowUsername'">
+                        <time
+                          :datetime="change.timestamp"
+                          class="review-changes__time review-changes__time--block"
+                        >
+                          {{
+                            simplifiedTimestamp
+                              ? formatRelativeTime(change.timestamp)
+                              : `${formatTime(change.timestamp)}, ${formatTimeLabel(change.timestamp)}`
+                          }}
+                        </time>
+                      </template>
                     </span>
-                    <span
-                      v-if="getPrimaryFeedFlag(change)?.tier === 'newEditor'"
-                      class="review-changes__thanks-patrol-new-editor-badge"
-                      aria-hidden="true"
+                    <div
+                      v-if="showStructuredDeltasForFlaggedUnviewed && hasAnyFlag(change)"
+                      class="review-changes__structured-delta-row"
+                      :class="{
+                        'review-changes__structured-delta-row--viewed': isRevisionViewed(change),
+                      }"
                     >
-                      <Sprout
-                        class="review-changes__thanks-patrol-badge-sprout"
-                        :size="14"
-                        :stroke-width="2"
-                        aria-hidden="true"
-                      />
-                      <span class="review-changes__thanks-patrol-new-editor-badge-text"
-                        >New editor</span
+                      <template v-if="getStructuredDeltaSegments(change.id)?.length"
+                        ><span :class="structuredDeltaOpenParenClass(change.id)">(</span
+                        ><template
+                          v-for="(seg, i) in getStructuredDeltaSegments(change.id)!"
+                          :key="i"
+                        >
+                          <span :class="seg.deltaClass">{{ seg.text }}</span
+                          ><span
+                            v-if="i < getStructuredDeltaSegments(change.id)!.length - 1"
+                            :class="seg.deltaClass"
+                            >,
+                          </span> </template
+                        ><span :class="structuredDeltaCloseParenClass(change.id)">)</span></template
                       >
-                    </span>
-                  </div>
-                  <component
-                    :is="thanksPatrolDiffOnlyInteraction && change.pageName ? 'a' : 'div'"
-                    class="review-changes__summary review-changes__summary--thanks-patrol-second-line"
-                    :class="{
-                      'review-changes__thanks-patrol-summary-hit':
-                        thanksPatrolDiffOnlyInteraction && change.pageName,
-                      'review-changes__thanks-patrol-summary-hit--revision-viewed':
-                        thanksPatrolDiffOnlyInteraction &&
-                        change.pageName &&
-                        isRevisionViewed(change),
-                      'review-changes__thanks-patrol-single-diff-hit':
-                        thanksPatrolDiffOnlyInteraction && change.pageName,
-                    }"
-                    :href="
-                      thanksPatrolDiffOnlyInteraction && change.pageName
-                        ? wiki.getRevisionUrl(change.id, change.pageName)
-                        : undefined
-                    "
-                    :target="thanksPatrolDiffOnlyInteraction && change.pageName ? '_blank' : undefined"
-                    :rel="
-                      thanksPatrolDiffOnlyInteraction && change.pageName
-                        ? 'noopener noreferrer'
-                        : undefined
-                    "
-                    :aria-label="
-                      thanksPatrolDiffOnlyInteraction && change.pageName
-                        ? `Open diff for ${change.pageName ?? 'page'}`
-                        : undefined
-                    "
-                    @click="
-                      thanksPatrolDiffOnlyInteraction &&
-                        change.pageName &&
-                        markRevisionAsViewed(change)
-                    "
-                  >
-                    <template v-if="showDelta">
-                      <span
-                        class="review-changes__summary-prefix"
-                        :class="wiki.getDeltaClass(change.delta ?? 0, false)"
-                        >{{ formatDelta(change.delta) }}</span
-                      >
-                      <span
-                        v-if="!!(change?.summary?.comment || change?.comment) || showEmptyEditSummary"
-                        class="review-changes__summary-sep"
-                        aria-hidden="true"
-                        >&nbsp;·&nbsp;</span
-                      ></template
-                    ><span
-                      v-if="!!(change?.summary?.comment || change?.comment)"
-                      class="review-changes__thanks-patrol-summary-led"
-                      ><CdxIcon
-                        :icon="cdxIconEdit"
-                        size="x-small"
-                        :class="[
-                          'review-changes__thanks-patrol-summary-icon',
-                          isRevisionViewed(change)
-                            ? 'review-changes__thanks-patrol-summary-icon--subtle'
-                            : 'review-changes__thanks-patrol-summary-icon--emphasized',
-                        ]"
-                        aria-hidden="true"
-                      /><template v-if="change?.summary?.comment"
+                      <template v-else-if="isStructuredDeltaLoadingForRevision(change.id)">
+                        <span class="review-changes__structured-delta-placeholder">(…)</span>
+                      </template>
+                      <template v-else>
+                        <span :class="wiki.getDeltaClass(change.delta ?? 0, false)">{{
+                          formatDelta(change.delta)
+                        }}</span>
+                      </template>
+                    </div>
+                    <div
+                      v-if="
+                        // !!(change?.summary?.comment || change?.comment) || showDelta
+                        true
+                      "
+                      class="review-changes__summary"
+                    >
+                      <template v-if="showDelta">
+                        <span
+                          class="review-changes__summary-prefix"
+                          :class="wiki.getDeltaClass(change.delta ?? 0, false)"
+                          >{{ formatDelta(change.delta) }}</span
+                        >
+                        <span
+                          v-if="
+                            !!(change?.summary?.comment || change?.comment) || showEmptyEditSummary
+                          "
+                          class="review-changes__summary-sep"
+                          aria-hidden="true"
+                          >&nbsp;·&nbsp;</span
+                        ></template
+                      ><template v-if="change?.summary?.comment"
                         ><span
                           v-if="showDelta"
                           :class="[
@@ -286,340 +579,79 @@
                           },
                         ]"
                         >{{ change.comment }}</span
-                      ></span
-                    >
-                  </component>
-                </template>
-                <template v-else>
-                <template v-if="unifiedTitle">
-                  <FeedItemTitle
-                    :page-name="change.pageName ?? ''"
-                    :short-description="
-                      change.pageName ? (shortDescriptionByPage.get(change.pageName) ?? null) : null
-                    "
-                    :timestamp="change.timestamp"
-                    :formatted-timestamp="
-                      timestampPosition === 'topRight'
-                        ? simplifiedTimestamp
-                          ? formatRelativeTime(change.timestamp)
-                          : `${formatTime(change.timestamp)}, ${formatTimeLabel(change.timestamp)}`
-                        : undefined
-                    "
-                    :item-source="getItemSource(change)"
-                    :show-source-icons="showSourceIcons"
-                    :show-short-description="showShortDescription"
-                    :show-short-description-separator="showShortDescriptionSeparator"
-                  />
-                </template>
-                <template v-else>
-                  <span
-                    class="review-changes__page-cell-heading review-changes__page-cell-heading--separate"
-                  >
-                    <CdxIcon
-                      v-if="showSourceIcons && getItemSource(change)"
-                      :icon="
-                        getItemSource(change) === 'pagesAndUsers' ||
-                        getItemSource(change) === 'pagesAndUsersLatest'
-                          ? cdxIconUnStar
-                          : getItemSource(change) === 'relatedChanges'
-                            ? cdxIconLightbulb
-                            : getItemSource(change) === 'collaborators'
-                              ? cdxIconUserAvatar
-                              : getItemSource(change) === 'pagesIveEdited'
-                                ? cdxIconEdit
-                                : cdxIconClock
-                      "
-                      size="x-small"
-                      :class="[
-                        'review-changes__source-icon',
-                        `review-changes__source-icon--${getItemSource(change)}`,
-                      ]"
-                      :aria-label="
-                        getItemSource(change) === 'pagesAndUsers'
-                          ? 'Watchlist'
-                          : getItemSource(change) === 'pagesAndUsersLatest'
-                            ? 'Watchlist (latest revision)'
-                            : getItemSource(change) === 'relatedChanges'
-                              ? 'Related changes'
-                              : getItemSource(change) === 'collaborators'
-                                ? 'Mentor'
-                                : getItemSource(change) === 'pagesIveEdited'
-                                  ? 'Pages you have edited'
-                                  : 'Risky'
-                      "
-                    />
-                    <span class="review-changes__page">{{ change.pageName }}</span>
-                    <span
-                      v-if="
-                        showShortDescription &&
-                        change.pageName &&
-                        shortDescriptionByPage.get(change.pageName)
-                      "
-                      class="review-changes__short-desc"
-                      :class="{
-                        'review-changes__short-desc--no-separator': !showShortDescriptionSeparator,
-                      }"
-                    >
-                      {{ shortDescriptionByPage.get(change.pageName) }}
-                    </span>
-                  </span>
-                </template>
-                <div
-                  v-if="showSourceSubtitles && getItemSource(change)"
-                  class="review-changes__source-subtitle"
+                      >
+                    </div>
+                  </template>
+                </span>
+                <time
+                  v-if="
+                    !unifiedTitle &&
+                    timestampPosition === 'topRight' &&
+                    !protowikiThanksPatrolCompactCard
+                  "
+                  :datetime="change.timestamp"
+                  class="review-changes__time"
                 >
                   {{
-                    getItemSource(change) === 'pagesAndUsers'
-                      ? 'From your watchlist'
-                      : getItemSource(change) === 'pagesAndUsersLatest'
-                        ? 'From your watchlist (latest)'
-                        : getItemSource(change) === 'relatedChanges'
-                          ? 'From recommendations'
-                          : getItemSource(change) === 'collaborators'
-                            ? 'By your mentor'
-                            : getItemSource(change) === 'pagesIveEdited'
-                              ? "Pages you've edited"
-                              : 'From recent changes'
+                    simplifiedTimestamp
+                      ? formatRelativeTime(change.timestamp)
+                      : `${formatTime(change.timestamp)}, ${formatTimeLabel(change.timestamp)}`
                   }}
-                </div>
-                <span
-                  class="review-changes__user-time-group"
-                  :class="{
-                    'review-changes__user-time-group--timestamp-below':
-                      timestampPosition === 'belowUsername',
-                  }"
-                >
-                  <span v-if="showUserIcon" class="review-changes__user-row">
-                    <CdxButton
-                      weight="quiet"
-                      class="review-changes__user-icon-btn"
-                      :aria-label="`User: ${change.user.name}`"
-                      size="small"
-                      @click.stop.prevent="openUserPopover($event, change)"
-                    >
-                      <CdxIcon
-                        class="review-changes__user-icon"
-                        :icon="
-                          wiki.isTemporaryAccount(change.user.name)
-                            ? cdxIconUserTemporary
-                            : cdxIconUserAvatar
-                        "
-                        size="x-small"
-                        aria-hidden="true"
-                      />
-                    </CdxButton>
-                    <a
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      :href="wiki.getUserUrl(change.user.name)"
-                      class="review-changes__user"
-                      @click.stop
-                    >
-                      {{ showUsernameAtPrefix ? '@' : '' }}{{ change.user.name }}
-                    </a>
-                  </span>
-                  <a
-                    v-else
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    :href="wiki.getUserUrl(change.user.name)"
-                    class="review-changes__user"
-                    @click.stop
-                  >
-                    {{ showUsernameAtPrefix ? '@' : '' }}{{ change.user.name }}
-                  </a>
-                  <template v-if="timestampPosition === 'rightOfUsername'">
-                    <span class="review-changes__time-sep" aria-hidden="true"> · </span>
-                    <time :datetime="change.timestamp" class="review-changes__time">
-                      {{
-                        simplifiedTimestamp
-                          ? formatRelativeTime(change.timestamp)
-                          : `${formatTime(change.timestamp)}, ${formatTimeLabel(change.timestamp)}`
-                      }}
-                    </time>
-                  </template>
-                  <template v-else-if="timestampPosition === 'belowUsername'">
-                    <time
-                      :datetime="change.timestamp"
-                      class="review-changes__time review-changes__time--block"
-                    >
-                      {{
-                        simplifiedTimestamp
-                          ? formatRelativeTime(change.timestamp)
-                          : `${formatTime(change.timestamp)}, ${formatTimeLabel(change.timestamp)}`
-                      }}
-                    </time>
-                  </template>
-                </span>
-                <div
-                  v-if="showStructuredDeltasForFlaggedUnviewed && hasAnyFlag(change)"
-                  class="review-changes__structured-delta-row"
-                  :class="{
-                    'review-changes__structured-delta-row--viewed': isRevisionViewed(change),
-                  }"
-                >
-                  <template v-if="getStructuredDeltaSegments(change.id)?.length"
-                    ><span :class="structuredDeltaOpenParenClass(change.id)">(</span
-                    ><template v-for="(seg, i) in getStructuredDeltaSegments(change.id)!" :key="i">
-                      <span :class="seg.deltaClass">{{ seg.text }}</span
-                      ><span
-                        v-if="i < getStructuredDeltaSegments(change.id)!.length - 1"
-                        :class="seg.deltaClass"
-                        >,
-                      </span> </template
-                    ><span :class="structuredDeltaCloseParenClass(change.id)">)</span></template
-                  >
-                  <template v-else-if="isStructuredDeltaLoadingForRevision(change.id)">
-                    <span class="review-changes__structured-delta-placeholder">(…)</span>
-                  </template>
-                  <template v-else>
-                    <span :class="wiki.getDeltaClass(change.delta ?? 0, false)">{{
-                      formatDelta(change.delta)
-                    }}</span>
-                  </template>
-                </div>
-                <div
-                  v-if="
-                    // !!(change?.summary?.comment || change?.comment) || showDelta
-                    true
-                  "
-                  class="review-changes__summary"
-                >
-                  <template v-if="showDelta">
-                    <span
-                      class="review-changes__summary-prefix"
-                      :class="wiki.getDeltaClass(change.delta ?? 0, false)"
-                      >{{ formatDelta(change.delta) }}</span
-                    >
-                    <span
-                      v-if="!!(change?.summary?.comment || change?.comment) || showEmptyEditSummary"
-                      class="review-changes__summary-sep"
-                      aria-hidden="true"
-                      >&nbsp;·&nbsp;</span
-                    ></template
-                  ><template v-if="change?.summary?.comment"
-                    ><span
-                      v-if="showDelta"
-                      :class="[
-                        'review-changes__comment',
-                        {
-                          'review-changes__comment--no-cutout': !showSummaryCutout,
-                        },
-                      ]"
-                      v-html="change.summary.comment"
-                    ></span
-                    ><span
-                      v-else
-                      :class="[
-                        'review-changes__comment',
-                        {
-                          'review-changes__comment--no-cutout': !showSummaryCutout,
-                        },
-                      ]"
-                      v-html="change.summary.comment"
-                    ></span></template
-                  ><span
-                    v-else-if="change?.comment"
-                    :class="[
-                      'review-changes__comment',
-                      {
-                        'review-changes__comment--no-cutout': !showSummaryCutout,
-                      },
-                    ]"
-                    >{{ change.comment }}</span
-                  >
-                </div>
-                </template>
-              </span>
-              <time
-                v-if="
-                  !unifiedTitle &&
-                  timestampPosition === 'topRight' &&
-                  !protowikiThanksPatrolCompactCard
-                "
-                :datetime="change.timestamp"
-                class="review-changes__time"
-              >
-                {{
-                  simplifiedTimestamp
-                    ? formatRelativeTime(change.timestamp)
-                    : `${formatTime(change.timestamp)}, ${formatTimeLabel(change.timestamp)}`
-                }}
-              </time>
-            </div>
-
-            <div
-              class="review-changes__user-flags-wrapper"
-              :class="{
-                'review-changes__user-flags-wrapper--flags-above': !flagsBelowUsername,
-              }"
-            >
-              <div
-                v-if="(showReviewButton || showDismissButton) && !hasAnyFlag(change)"
-                class="review-changes__user-actions-row"
-              >
-                <span
-                  v-if="(showReviewButton || showDismissButton) && !hasAnyFlag(change)"
-                  class="review-changes__action-buttons"
-                >
-                  <CdxButton
-                    v-if="showReviewButton"
-                    :action="
-                      isRevisionViewed(change)
-                        ? 'default'
-                        : isLatestRevision(change)
-                          ? 'progressive'
-                          : 'default'
-                    "
-                    size="small"
-                    weight="quiet"
-                    class="review-changes__view-change-btn"
-                    :class="{
-                      'review-changes__view-change-btn--viewed': isRevisionViewed(change),
-                    }"
-                    @pointerdown.stop
-                    @mousedown.stop
-                    @click.stop="openDiffInNewTab(change)"
-                  >
-                    <CdxIcon :icon="cdxIconLinkExternal" size="x-small" />
-                    Open
-                  </CdxButton>
-                  <CdxButton
-                    v-if="showDismissButton"
-                    action="default"
-                    size="small"
-                    weight="quiet"
-                    class="review-changes__dismiss-btn"
-                    aria-label="Dismiss"
-                    @pointerdown.stop
-                    @mousedown.stop
-                    @click.stop="dismissRevision(change)"
-                  >
-                    <CdxIcon :icon="cdxIconCheck" size="x-small" />
-                    Dismiss
-                  </CdxButton>
-                </span>
+                </time>
               </div>
+
               <div
-                v-if="
-                  (showRevertRiskFlags && getRevertRiskNotice(change)) ||
-                  (showRevertedFlag && isReverted(change)) ||
-                  (showRecommendationFlags &&
-                    getItemSource(change) === 'relatedChanges' &&
-                    getRecommendationSourcePageNames(change).length) ||
-                  (showOnWatchlistLabel && change.pageName && isPageOnWatchlist(change.pageName)) ||
-                  (showEditCheckOtherFlag && hasReferenceNeed(change)) ||
-                  (showToneCheckFlag && hasToneCheckFlag(change)) ||
-                  (getPrimaryFeedFlag(change)?.tier === 'newEditor' &&
-                    !protowikiThanksPatrolCompactCard)
-                "
-                class="review-changes__flags-actions-row"
+                class="review-changes__user-flags-wrapper"
                 :class="{
-                  'review-changes__flags-actions-row--flags-only': !(
-                    showReviewButton || showDismissButton
-                  ),
+                  'review-changes__user-flags-wrapper--flags-above': !flagsBelowUsername,
                 }"
               >
+                <div
+                  v-if="(showReviewButton || showDismissButton) && !hasAnyFlag(change)"
+                  class="review-changes__user-actions-row"
+                >
+                  <span
+                    v-if="(showReviewButton || showDismissButton) && !hasAnyFlag(change)"
+                    class="review-changes__action-buttons"
+                  >
+                    <CdxButton
+                      v-if="showReviewButton"
+                      :action="
+                        isRevisionViewed(change)
+                          ? 'default'
+                          : isLatestRevision(change)
+                            ? 'progressive'
+                            : 'default'
+                      "
+                      size="small"
+                      weight="quiet"
+                      class="review-changes__view-change-btn"
+                      :class="{
+                        'review-changes__view-change-btn--viewed': isRevisionViewed(change),
+                      }"
+                      @pointerdown.stop
+                      @mousedown.stop
+                      @click.stop="openDiffInNewTab(change)"
+                    >
+                      <CdxIcon :icon="cdxIconLinkExternal" size="x-small" />
+                      Open
+                    </CdxButton>
+                    <CdxButton
+                      v-if="showDismissButton"
+                      action="default"
+                      size="small"
+                      weight="quiet"
+                      class="review-changes__dismiss-btn"
+                      aria-label="Dismiss"
+                      @pointerdown.stop
+                      @mousedown.stop
+                      @click.stop="dismissRevision(change)"
+                    >
+                      <CdxIcon :icon="cdxIconCheck" size="x-small" />
+                      Dismiss
+                    </CdxButton>
+                  </span>
+                </div>
                 <div
                   v-if="
                     (showRevertRiskFlags && getRevertRiskNotice(change)) ||
@@ -635,191 +667,215 @@
                     (getPrimaryFeedFlag(change)?.tier === 'newEditor' &&
                       !protowikiThanksPatrolCompactCard)
                   "
-                  class="review-changes__flags-container"
+                  class="review-changes__flags-actions-row"
                   :class="{
-                    'review-changes__flags-container--no-box': !revertRiskFlagsInBox,
-                    'review-changes__flags-container--no-summary-above': !hasSummaryAbove(change),
+                    'review-changes__flags-actions-row--flags-only': !(
+                      showReviewButton || showDismissButton
+                    ),
                   }"
                 >
                   <div
                     v-if="
-                      showOnWatchlistLabel && change.pageName && isPageOnWatchlist(change.pageName)
+                      (showRevertRiskFlags && getRevertRiskNotice(change)) ||
+                      (showRevertedFlag && isReverted(change)) ||
+                      (showRecommendationFlags &&
+                        getItemSource(change) === 'relatedChanges' &&
+                        getRecommendationSourcePageNames(change).length) ||
+                      (showOnWatchlistLabel &&
+                        change.pageName &&
+                        isPageOnWatchlist(change.pageName)) ||
+                      (showEditCheckOtherFlag && hasReferenceNeed(change)) ||
+                      (showToneCheckFlag && hasToneCheckFlag(change)) ||
+                      (getPrimaryFeedFlag(change)?.tier === 'newEditor' &&
+                        !protowikiThanksPatrolCompactCard)
                     "
-                    class="review-changes__revert-risk-notice review-changes__revert-risk-notice--edit-check"
+                    class="review-changes__flags-container"
+                    :class="{
+                      'review-changes__flags-container--no-box': !revertRiskFlagsInBox,
+                      'review-changes__flags-container--no-summary-above': !hasSummaryAbove(change),
+                    }"
                   >
-                    <span class="review-changes__revert-risk-notice-text">On your watchlist</span>
-                  </div>
+                    <div
+                      v-if="
+                        showOnWatchlistLabel &&
+                        change.pageName &&
+                        isPageOnWatchlist(change.pageName)
+                      "
+                      class="review-changes__revert-risk-notice review-changes__revert-risk-notice--edit-check"
+                    >
+                      <span class="review-changes__revert-risk-notice-text">On your watchlist</span>
+                    </div>
 
-                  <div
-                    v-if="showRevertedFlag && isReverted(change)"
-                    class="review-changes__revert-risk-notice review-changes__revert-risk-notice--reverted"
-                  >
-                    <span class="review-changes__revert-risk-notice-text">{{
-                      verboseFlags ? 'This change was reverted' : 'Reverted'
-                    }}</span>
-                  </div>
-                  <div
-                    v-if="
-                      showRevertRiskFlags &&
-                      getRevertRiskNotice(change) &&
-                      shouldShowFlagNoticeText(change, 'revertRisk')
-                    "
-                    class="review-changes__revert-risk-notice"
-                    :class="{
-                      'review-changes__revert-risk-notice--very-high':
-                        getRevertRiskNotice(change)?.band === 'high',
-                      'review-changes__revert-risk-notice--high':
-                        getRevertRiskNotice(change)?.band === 'mediumHigh',
-                    }"
-                  >
-                    <span class="review-changes__revert-risk-notice-text"
-                      ><strong>{{ getRevertRiskNotice(change)!.label }}&nbsp;</strong
-                      >{{ getRevertRiskNotice(change)!.description }}</span
+                    <div
+                      v-if="showRevertedFlag && isReverted(change)"
+                      class="review-changes__revert-risk-notice review-changes__revert-risk-notice--reverted"
                     >
-                  </div>
-                  <div
-                    v-if="
-                      showEditCheckOtherFlag &&
-                      hasReferenceNeed(change) &&
-                      shouldShowFlagNoticeText(change, 'reference')
-                    "
-                    class="review-changes__revert-risk-notice review-changes__revert-risk-notice--tone-ref"
-                  >
-                    <span class="review-changes__revert-risk-notice-text"
-                      ><strong>Reference issue.&nbsp;</strong
-                      >{{ 'Citations might be needed.' }}</span
+                      <span class="review-changes__revert-risk-notice-text">{{
+                        verboseFlags ? 'This change was reverted' : 'Reverted'
+                      }}</span>
+                    </div>
+                    <div
+                      v-if="
+                        showRevertRiskFlags &&
+                        getRevertRiskNotice(change) &&
+                        shouldShowFlagNoticeText(change, 'revertRisk')
+                      "
+                      class="review-changes__revert-risk-notice"
+                      :class="{
+                        'review-changes__revert-risk-notice--very-high':
+                          getRevertRiskNotice(change)?.band === 'high',
+                        'review-changes__revert-risk-notice--high':
+                          getRevertRiskNotice(change)?.band === 'mediumHigh',
+                      }"
                     >
-                  </div>
-                  <div
-                    v-if="
-                      showToneCheckFlag &&
-                      hasToneCheckFlag(change) &&
-                      shouldShowFlagNoticeText(change, 'tone')
-                    "
-                    class="review-changes__revert-risk-notice review-changes__revert-risk-notice--tone-ref"
-                  >
-                    <span class="review-changes__revert-risk-notice-text"
-                      ><strong>Tone issue.&nbsp;</strong
-                      >{{ 'Might need revising to a more neutral tone.' }}</span
+                      <span class="review-changes__revert-risk-notice-text"
+                        ><strong>{{ getRevertRiskNotice(change)!.label }}&nbsp;</strong
+                        >{{ getRevertRiskNotice(change)!.description }}</span
+                      >
+                    </div>
+                    <div
+                      v-if="
+                        showEditCheckOtherFlag &&
+                        hasReferenceNeed(change) &&
+                        shouldShowFlagNoticeText(change, 'reference')
+                      "
+                      class="review-changes__revert-risk-notice review-changes__revert-risk-notice--tone-ref"
                     >
-                  </div>
-                  <div
-                    v-if="
-                      showRecommendationFlags &&
-                      getItemSource(change) === 'relatedChanges' &&
-                      getRecommendationDetailText(getRecommendationSourcePageNames(change)) &&
-                      shouldShowFlagNoticeText(change, 'recommendation')
-                    "
-                    class="review-changes__recommendation-notice"
-                    :class="{
-                      'review-changes__recommendation-notice--primary':
-                        isRecommendationPrimaryFlag(change),
-                      'review-changes__recommendation-notice--secondary':
-                        !isRecommendationPrimaryFlag(change),
-                      'review-changes__recommendation-notice--viewed':
-                        !isRecommendationPrimaryFlag(change) && isRevisionViewed(change),
-                    }"
-                  >
-                    <span class="review-changes__recommendation-notice-text">
-                      <strong>Recommendation.</strong>
-                      {{
-                        getRecommendationDetailText(getRecommendationSourcePageNames(change))
-                      }}</span
+                      <span class="review-changes__revert-risk-notice-text"
+                        ><strong>Reference issue.&nbsp;</strong
+                        >{{ 'Citations might be needed.' }}</span
+                      >
+                    </div>
+                    <div
+                      v-if="
+                        showToneCheckFlag &&
+                        hasToneCheckFlag(change) &&
+                        shouldShowFlagNoticeText(change, 'tone')
+                      "
+                      class="review-changes__revert-risk-notice review-changes__revert-risk-notice--tone-ref"
                     >
+                      <span class="review-changes__revert-risk-notice-text"
+                        ><strong>Tone issue.&nbsp;</strong
+                        >{{ 'Might need revising to a more neutral tone.' }}</span
+                      >
+                    </div>
+                    <div
+                      v-if="
+                        showRecommendationFlags &&
+                        getItemSource(change) === 'relatedChanges' &&
+                        getRecommendationDetailText(getRecommendationSourcePageNames(change)) &&
+                        shouldShowFlagNoticeText(change, 'recommendation')
+                      "
+                      class="review-changes__recommendation-notice"
+                      :class="{
+                        'review-changes__recommendation-notice--primary':
+                          isRecommendationPrimaryFlag(change),
+                        'review-changes__recommendation-notice--secondary':
+                          !isRecommendationPrimaryFlag(change),
+                        'review-changes__recommendation-notice--viewed':
+                          !isRecommendationPrimaryFlag(change) && isRevisionViewed(change),
+                      }"
+                    >
+                      <span class="review-changes__recommendation-notice-text">
+                        <strong>Recommendation.</strong>
+                        {{
+                          getRecommendationDetailText(getRecommendationSourcePageNames(change))
+                        }}</span
+                      >
+                    </div>
+                    <div
+                      v-if="
+                        getPrimaryFeedFlag(change)?.tier === 'newEditor' &&
+                        !protowikiThanksPatrolCompactCard
+                      "
+                      class="review-changes__new-editor-notice"
+                    >
+                      <span class="review-changes__new-editor-notice-text">
+                        <strong>New editor.</strong>
+                        Encourage this editor to continue editing by giving thanks.
+                      </span>
+                    </div>
                   </div>
-                  <div
-                    v-if="
-                      getPrimaryFeedFlag(change)?.tier === 'newEditor' &&
-                      !protowikiThanksPatrolCompactCard
-                    "
-                    class="review-changes__new-editor-notice"
+                  <span
+                    v-if="(showReviewButton || showDismissButton) && hasAnyFlag(change)"
+                    class="review-changes__action-buttons"
                   >
-                    <span class="review-changes__new-editor-notice-text">
-                      <strong>New editor.</strong>
-                      Encourage this editor to continue editing by giving thanks.
-                    </span>
-                  </div>
+                    <CdxButton
+                      v-if="showReviewButton"
+                      :action="
+                        isRevisionViewed(change)
+                          ? 'default'
+                          : isLatestRevision(change)
+                            ? 'progressive'
+                            : 'default'
+                      "
+                      size="small"
+                      weight="quiet"
+                      class="review-changes__view-change-btn"
+                      :class="{
+                        'review-changes__view-change-btn--viewed': isRevisionViewed(change),
+                      }"
+                      @pointerdown.stop
+                      @mousedown.stop
+                      @click.stop="openDiffInNewTab(change)"
+                    >
+                      <CdxIcon :icon="cdxIconLinkExternal" size="x-small" />
+                      Open
+                    </CdxButton>
+                    <CdxButton
+                      v-if="showDismissButton"
+                      action="default"
+                      size="small"
+                      weight="quiet"
+                      class="review-changes__dismiss-btn"
+                      aria-label="Dismiss"
+                      @pointerdown.stop
+                      @mousedown.stop
+                      @click.stop="dismissRevision(change)"
+                    >
+                      <CdxIcon :icon="cdxIconCheck" size="x-small" />
+                      Dismiss
+                    </CdxButton>
+                  </span>
                 </div>
-                <span
-                  v-if="(showReviewButton || showDismissButton) && hasAnyFlag(change)"
-                  class="review-changes__action-buttons"
-                >
-                  <CdxButton
-                    v-if="showReviewButton"
-                    :action="
-                      isRevisionViewed(change)
-                        ? 'default'
-                        : isLatestRevision(change)
-                          ? 'progressive'
-                          : 'default'
-                    "
-                    size="small"
-                    weight="quiet"
-                    class="review-changes__view-change-btn"
-                    :class="{
-                      'review-changes__view-change-btn--viewed': isRevisionViewed(change),
-                    }"
-                    @pointerdown.stop
-                    @mousedown.stop
-                    @click.stop="openDiffInNewTab(change)"
-                  >
-                    <CdxIcon :icon="cdxIconLinkExternal" size="x-small" />
-                    Open
-                  </CdxButton>
-                  <CdxButton
-                    v-if="showDismissButton"
-                    action="default"
-                    size="small"
-                    weight="quiet"
-                    class="review-changes__dismiss-btn"
-                    aria-label="Dismiss"
-                    @pointerdown.stop
-                    @mousedown.stop
-                    @click.stop="dismissRevision(change)"
-                  >
-                    <CdxIcon :icon="cdxIconCheck" size="x-small" />
-                    Dismiss
-                  </CdxButton>
-                </span>
               </div>
-            </div>
-            <span v-if="showRevertRisk" class="review-changes__revert-risk">
-              <span
-                v-for="line in getRevertRiskLines(change.id)"
-                :key="line.label"
-                class="review-changes__revert-risk-line"
-                :class="{
-                  'review-changes__revert-risk-line--loading': line.value === '(loading)',
-                  'review-changes__revert-risk-line--error':
-                    line.value === '(error)' || line.value === '(missing)',
-                }"
-                >{{ line.label }}: {{ line.value }}</span
-              >
-            </span>
-            <span v-if="showDebugChecks" class="review-changes__revert-risk">
-              <span
-                v-for="line in getEditCheckDebugLines(change)"
-                :key="line.label"
-                class="review-changes__revert-risk-line"
-                :class="{
-                  'review-changes__revert-risk-line--loading': line.value === '(loading)',
-                  'review-changes__revert-risk-line--error': line.value === '(error)',
-                }"
-                >{{ line.label }}: {{ line.value }}</span
-              >
-            </span>
-          </component>
-          <span
-            v-if="viewedBorder && change.id === lastClickedRevisionId"
-            class="review-changes__item-line review-changes__item-line--last-clicked review-changes__item-line--right"
-            aria-hidden="true"
-          />
-          <span
-            v-if="unviewedBorder && !isRevisionViewed(change)"
-            class="review-changes__item-line review-changes__item-line--unviewed review-changes__item-line--right"
-            aria-hidden="true"
-          />
-        </li>
+              <span v-if="showRevertRisk" class="review-changes__revert-risk">
+                <span
+                  v-for="line in getRevertRiskLines(change.id)"
+                  :key="line.label"
+                  class="review-changes__revert-risk-line"
+                  :class="{
+                    'review-changes__revert-risk-line--loading': line.value === '(loading)',
+                    'review-changes__revert-risk-line--error':
+                      line.value === '(error)' || line.value === '(missing)',
+                  }"
+                  >{{ line.label }}: {{ line.value }}</span
+                >
+              </span>
+              <span v-if="showDebugChecks" class="review-changes__revert-risk">
+                <span
+                  v-for="line in getEditCheckDebugLines(change)"
+                  :key="line.label"
+                  class="review-changes__revert-risk-line"
+                  :class="{
+                    'review-changes__revert-risk-line--loading': line.value === '(loading)',
+                    'review-changes__revert-risk-line--error': line.value === '(error)',
+                  }"
+                  >{{ line.label }}: {{ line.value }}</span
+                >
+              </span>
+            </component>
+            <span
+              v-if="viewedBorder && change.id === lastClickedRevisionId"
+              class="review-changes__item-line review-changes__item-line--last-clicked review-changes__item-line--right"
+              aria-hidden="true"
+            />
+            <span
+              v-if="unviewedBorder && !isRevisionViewed(change)"
+              class="review-changes__item-line review-changes__item-line--unviewed review-changes__item-line--right"
+              aria-hidden="true"
+            />
+          </li>
         </template>
         <template v-else>
           <li
@@ -845,14 +901,14 @@
               role="group"
               class="review-changes__item-link review-changes__item-link--thanks-patrol-cluster review-changes__thanks-patrol-cluster-shell"
               :class="{
-                'review-changes__thanks-patrol-cluster-shell--diff-only': thanksPatrolDiffOnlyInteraction,
+                'review-changes__thanks-patrol-cluster-shell--diff-only':
+                  thanksPatrolDiffOnlyInteraction,
                 'review-changes__item-link--not-link':
                   !clusterHeadRevision(feedItem.cluster).pageName ||
                   thanksPatrolDiffOnlyInteraction,
-                'review-changes__item-link--revision-viewed':
-                  thanksPatrolDiffOnlyInteraction
-                    ? clusterAllViewed(feedItem.cluster)
-                    : clusterHasAnyViewed(feedItem.cluster) && !thanksPatrolDiffOnlyInteraction,
+                'review-changes__item-link--revision-viewed': thanksPatrolDiffOnlyInteraction
+                  ? clusterAllViewed(feedItem.cluster)
+                  : clusterHasAnyViewed(feedItem.cluster) && !thanksPatrolDiffOnlyInteraction,
                 'review-changes__item-link--unviewed':
                   highlightUnviewed &&
                   clusterHasUnviewed(feedItem.cluster) &&
@@ -862,7 +918,8 @@
                 'review-changes__item-link--primary-unviewed-tone':
                   clusterHasUnviewed(feedItem.cluster) &&
                   !thanksPatrolDiffOnlyInteraction &&
-                  getPrimaryFeedFlag(clusterChromeRevision(feedItem.cluster))?.tier === 'toneReference',
+                  getPrimaryFeedFlag(clusterChromeRevision(feedItem.cluster))?.tier ===
+                    'toneReference',
                 'review-changes__item-link--primary-unviewed-revert':
                   clusterHasUnviewed(feedItem.cluster) &&
                   !thanksPatrolDiffOnlyInteraction &&
@@ -874,10 +931,14 @@
                 'review-changes__item-link--primary-unviewed-recommendation':
                   clusterHasUnviewed(feedItem.cluster) &&
                   !thanksPatrolDiffOnlyInteraction &&
-                  getPrimaryFeedFlag(clusterChromeRevision(feedItem.cluster))?.tier === 'recommendation',
+                  getPrimaryFeedFlag(clusterChromeRevision(feedItem.cluster))?.tier ===
+                    'recommendation',
                 'review-changes__item-link--primary-unviewed-new-editor':
                   clusterHasUnviewed(feedItem.cluster) &&
                   getPrimaryFeedFlag(clusterChromeRevision(feedItem.cluster))?.tier === 'newEditor',
+                'review-changes__thanks-patrol-cluster-shell--signal-flag':
+                  thanksPatrolSignalBadgesEnabled &&
+                  !!thanksPatrolResolvedSignalBadgeForCluster(feedItem.cluster),
               }"
               :aria-label="
                 thanksPatrolDiffOnlyInteraction
@@ -889,8 +950,7 @@
             >
               <a
                 v-if="
-                  clusterHeadRevision(feedItem.cluster).pageName &&
-                  !thanksPatrolDiffOnlyInteraction
+                  clusterHeadRevision(feedItem.cluster).pageName && !thanksPatrolDiffOnlyInteraction
                 "
                 class="review-changes__thanks-patrol-cluster-hit"
                 :href="
@@ -905,274 +965,303 @@
                 tabindex="-1"
                 @click="
                   clusterHeadRevision(feedItem.cluster).pageName &&
-                    markRevisionAsViewed(clusterHeadRevision(feedItem.cluster))
+                  markRevisionAsViewed(clusterHeadRevision(feedItem.cluster))
                 "
                 @pointerdown.capture="onCardPointerDown"
                 @mousedown.capture="onCardPointerDown"
               />
               <div class="review-changes__thanks-patrol-cluster-content">
-              <div
-                class="review-changes__item-header"
-                :class="{
-                  'review-changes__item-header--has-primary-flag':
-                    !!getPrimaryFeedFlag(clusterHeadRevision(feedItem.cluster)) &&
-                    !(
-                      protowikiThanksPatrolCompactCard &&
-                      getPrimaryFeedFlag(clusterHeadRevision(feedItem.cluster))?.tier === 'newEditor'
-                    ),
-                }"
-              >
-                <CdxIcon
-                  v-if="
-                    getPrimaryFeedFlag(clusterHeadRevision(feedItem.cluster)) &&
-                    !(
-                      protowikiThanksPatrolCompactCard &&
-                      getPrimaryFeedFlag(clusterHeadRevision(feedItem.cluster))?.tier === 'newEditor'
-                    )
-                  "
-                  :icon="primaryFlagCdxIcon(clusterHeadRevision(feedItem.cluster))"
-                  size="medium"
-                  :class="[
-                    'review-changes__primary-flag-icon',
-                    primaryFlagIconModifierClass(clusterHeadRevision(feedItem.cluster)),
-                  ]"
-                  aria-hidden="true"
-                />
-                <CdxIcon
-                  v-else-if="showArrowInTopRight"
-                  :icon="cdxIconArrowNext"
-                  size="medium"
-                  class="review-changes__arrow-in-top-right"
-                  aria-hidden="true"
-                />
-                <span class="review-changes__page-cell review-changes__page-cell--thanks-patrol-compact">
-                  <div class="review-changes__thanks-patrol-top-row">
-                    <span class="review-changes__thanks-patrol-headline">
-                      <a
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        :href="wiki.getUserUrl(clusterHeadRevision(feedItem.cluster).user.name)"
-                        class="review-changes__user review-changes__thanks-patrol-user-link"
-                        @click.stop
-                        ><strong>{{
-                          showUsernameAtPrefix ? '@' : ''
-                        }}{{ clusterHeadRevision(feedItem.cluster).user.name }}</strong></a
-                      ><span
-                        class="review-changes__thanks-patrol-edited"
-                        :class="{
-                          'review-changes__thanks-patrol-edited--visited':
-                            (thanksPatrolDiffOnlyInteraction &&
-                              clusterAllViewed(feedItem.cluster)) ||
-                            (!thanksPatrolDiffOnlyInteraction &&
-                              clusterHasAnyViewed(feedItem.cluster)),
-                        }"
-                        > edited </span
-                      ><a
-                        v-if="clusterHeadRevision(feedItem.cluster).pageName"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        :href="wiki.getPageUrl(clusterHeadRevision(feedItem.cluster).pageName!)"
-                        class="review-changes__thanks-patrol-page-link"
-                        @click.stop
-                        ><strong>{{ clusterHeadRevision(feedItem.cluster).pageName }}</strong></a
-                      >
-                    </span>
-                    <span
-                      v-if="getPrimaryFeedFlag(clusterHeadRevision(feedItem.cluster))?.tier === 'newEditor'"
-                      class="review-changes__thanks-patrol-new-editor-badge"
-                      aria-hidden="true"
-                    >
-                      <Sprout
-                        class="review-changes__thanks-patrol-badge-sprout"
-                        :size="14"
-                        :stroke-width="2"
-                        aria-hidden="true"
-                      />
-                      <span class="review-changes__thanks-patrol-new-editor-badge-text"
-                        >New editor</span
-                      >
-                    </span>
-                  </div>
-                  <div class="review-changes__thanks-patrol-cluster-summaries">
-                    <div
-                      v-for="subChange in feedItem.cluster.revisions"
-                      :key="subChange.id"
-                      class="review-changes__thanks-patrol-cluster-summary-row"
-                      :class="{
-                        'review-changes__thanks-patrol-cluster-summary-row--revision-viewed':
-                          thanksPatrolDiffOnlyInteraction && isRevisionViewed(subChange),
-                      }"
-                    >
-                      <component
-                        v-if="thanksPatrolDiffOnlyInteraction"
-                        :is="subChange.pageName ? 'a' : 'div'"
-                        class="review-changes__summary review-changes__summary--thanks-patrol-second-line"
-                        :class="{
-                          'review-changes__thanks-patrol-summary-hit': !!subChange.pageName,
-                          'review-changes__thanks-patrol-summary-hit--revision-viewed':
-                            !!subChange.pageName && isRevisionViewed(subChange),
-                        }"
-                        :href="
-                          subChange.pageName
-                            ? wiki.getRevisionUrl(subChange.id, subChange.pageName)
-                            : undefined
-                        "
-                        :target="subChange.pageName ? '_blank' : undefined"
-                        :rel="subChange.pageName ? 'noopener noreferrer' : undefined"
-                        :aria-label="
-                          subChange.pageName
-                            ? `Open diff for ${subChange.pageName}`
-                            : undefined
-                        "
-                        @click="
-                          thanksPatrolDiffOnlyInteraction &&
-                            subChange.pageName &&
-                            markRevisionAsViewed(subChange)
-                        "
-                      >
-                        <template v-if="showDelta">
-                          <span
-                            class="review-changes__summary-prefix"
-                            :class="wiki.getDeltaClass(subChange.delta ?? 0, false)"
-                            >{{ formatDelta(subChange.delta) }}</span
-                          >
-                          <span
-                            v-if="
-                              !!(subChange?.summary?.comment || subChange?.comment) ||
-                              showEmptyEditSummary
-                            "
-                            class="review-changes__summary-sep"
-                            aria-hidden="true"
-                            >&nbsp;·&nbsp;</span
-                          ></template
+                <div
+                  class="review-changes__item-header"
+                  :class="{
+                    'review-changes__item-header--has-primary-flag':
+                      !!getPrimaryFeedFlag(clusterHeadRevision(feedItem.cluster)) &&
+                      !(
+                        protowikiThanksPatrolCompactCard &&
+                        getPrimaryFeedFlag(clusterHeadRevision(feedItem.cluster))?.tier ===
+                          'newEditor'
+                      ),
+                  }"
+                >
+                  <CdxIcon
+                    v-if="
+                      getPrimaryFeedFlag(clusterHeadRevision(feedItem.cluster)) &&
+                      !(
+                        protowikiThanksPatrolCompactCard &&
+                        getPrimaryFeedFlag(clusterHeadRevision(feedItem.cluster))?.tier ===
+                          'newEditor'
+                      )
+                    "
+                    :icon="primaryFlagCdxIcon(clusterHeadRevision(feedItem.cluster))"
+                    size="medium"
+                    :class="[
+                      'review-changes__primary-flag-icon',
+                      primaryFlagIconModifierClass(clusterHeadRevision(feedItem.cluster)),
+                    ]"
+                    aria-hidden="true"
+                  />
+                  <CdxIcon
+                    v-else-if="showArrowInTopRight"
+                    :icon="cdxIconArrowNext"
+                    size="medium"
+                    class="review-changes__arrow-in-top-right"
+                    aria-hidden="true"
+                  />
+                  <span
+                    class="review-changes__page-cell review-changes__page-cell--thanks-patrol-compact"
+                  >
+                    <div class="review-changes__thanks-patrol-top-row">
+                      <span class="review-changes__thanks-patrol-headline">
+                        <a
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          :href="wiki.getUserUrl(clusterHeadRevision(feedItem.cluster).user.name)"
+                          class="review-changes__user review-changes__thanks-patrol-user-link"
+                          @click.stop
+                          ><strong
+                            >{{ showUsernameAtPrefix ? '@' : ''
+                            }}{{ clusterHeadRevision(feedItem.cluster).user.name }}</strong
+                          ></a
                         ><span
-                          v-if="!!(subChange?.summary?.comment || subChange?.comment)"
-                          class="review-changes__thanks-patrol-summary-led"
-                          ><CdxIcon
-                            :icon="cdxIconEdit"
-                            size="x-small"
-                            :class="[
-                              'review-changes__thanks-patrol-summary-icon',
-                              isRevisionViewed(subChange)
-                                ? 'review-changes__thanks-patrol-summary-icon--subtle'
-                                : 'review-changes__thanks-patrol-summary-icon--emphasized',
-                            ]"
-                            aria-hidden="true"
-                          /><template v-if="subChange?.summary?.comment"
-                            ><span
-                              v-if="showDelta"
-                              :class="[
-                                'review-changes__comment',
-                                {
-                                  'review-changes__comment--no-cutout': !showSummaryCutout,
-                                },
-                              ]"
-                              v-html="subChange.summary.comment"
-                            ></span
-                            ><span
-                              v-else
-                              :class="[
-                                'review-changes__comment',
-                                {
-                                  'review-changes__comment--no-cutout': !showSummaryCutout,
-                                },
-                              ]"
-                              v-html="subChange.summary.comment"
-                            ></span></template
-                          ><span
-                            v-else-if="subChange?.comment"
-                            :class="[
-                              'review-changes__comment',
-                              {
-                                'review-changes__comment--no-cutout': !showSummaryCutout,
-                              },
-                            ]"
-                            >{{ subChange.comment }}</span
-                          ></span
+                          class="review-changes__thanks-patrol-edited"
+                          :class="{
+                            'review-changes__thanks-patrol-edited--visited':
+                              (thanksPatrolDiffOnlyInteraction &&
+                                clusterAllViewed(feedItem.cluster)) ||
+                              (!thanksPatrolDiffOnlyInteraction &&
+                                clusterHasAnyViewed(feedItem.cluster)),
+                          }"
                         >
-                      </component>
-                      <div
-                        v-else
-                        class="review-changes__summary review-changes__summary--thanks-patrol-second-line"
+                          edited </span
+                        ><a
+                          v-if="clusterHeadRevision(feedItem.cluster).pageName"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          :href="wiki.getPageUrl(clusterHeadRevision(feedItem.cluster).pageName!)"
+                          class="review-changes__thanks-patrol-page-link"
+                          @click.stop
+                          ><strong>{{ clusterHeadRevision(feedItem.cluster).pageName }}</strong></a
+                        >
+                      </span>
+                      <span
+                        v-if="
+                          thanksPatrolSignalBadgesEnabled &&
+                          thanksPatrolResolvedSignalBadgeForCluster(feedItem.cluster)
+                        "
+                        class="review-changes__thanks-patrol-signal-badge"
                       >
-                        <template v-if="showDelta">
-                          <span
-                            class="review-changes__summary-prefix"
-                            :class="wiki.getDeltaClass(subChange.delta ?? 0, false)"
-                            >{{ formatDelta(subChange.delta) }}</span
-                          >
-                          <span
-                            v-if="
-                              !!(subChange?.summary?.comment || subChange?.comment) ||
-                              showEmptyEditSummary
-                            "
-                            class="review-changes__summary-sep"
-                            aria-hidden="true"
-                            >&nbsp;·&nbsp;</span
-                          ></template
-                        ><component
-                          :is="subChange.pageName ? 'a' : 'span'"
-                          v-if="!!(subChange?.summary?.comment || subChange?.comment)"
-                          class="review-changes__thanks-patrol-summary-led"
+                        <CdxIcon
+                          :icon="
+                            thanksPatrolSignalBadgeIcon(
+                              thanksPatrolResolvedSignalBadgeForCluster(feedItem.cluster)!.kind,
+                            )
+                          "
+                          size="small"
+                          class="review-changes__thanks-patrol-signal-badge-icon"
+                          aria-hidden="true"
+                        />
+                        <span class="review-changes__thanks-patrol-signal-badge-text">{{
+                          thanksPatrolResolvedSignalBadgeForCluster(feedItem.cluster)!.label
+                        }}</span>
+                      </span>
+                      <span
+                        v-else-if="
+                          getPrimaryFeedFlag(clusterHeadRevision(feedItem.cluster))?.tier ===
+                          'newEditor'
+                        "
+                        class="review-changes__thanks-patrol-new-editor-badge"
+                        aria-hidden="true"
+                      >
+                        <Sprout
+                          class="review-changes__thanks-patrol-badge-sprout"
+                          :size="14"
+                          :stroke-width="2"
+                          aria-hidden="true"
+                        />
+                        <span class="review-changes__thanks-patrol-new-editor-badge-text"
+                          >New editor</span
+                        >
+                      </span>
+                    </div>
+                    <div class="review-changes__thanks-patrol-cluster-summaries">
+                      <div
+                        v-for="subChange in feedItem.cluster.revisions"
+                        :key="subChange.id"
+                        class="review-changes__thanks-patrol-cluster-summary-row"
+                        :class="{
+                          'review-changes__thanks-patrol-cluster-summary-row--revision-viewed':
+                            thanksPatrolDiffOnlyInteraction && isRevisionViewed(subChange),
+                        }"
+                      >
+                        <component
+                          v-if="thanksPatrolDiffOnlyInteraction"
+                          :is="subChange.pageName ? 'a' : 'div'"
+                          class="review-changes__summary review-changes__summary--thanks-patrol-second-line"
                           :class="{
                             'review-changes__thanks-patrol-summary-hit': !!subChange.pageName,
+                            'review-changes__thanks-patrol-summary-hit--revision-viewed':
+                              !!subChange.pageName && isRevisionViewed(subChange),
                           }"
-                          v-bind="
+                          :href="
                             subChange.pageName
-                              ? {
-                                  href: wiki.getRevisionUrl(subChange.id, subChange.pageName),
-                                  target: '_blank',
-                                  rel: 'noopener noreferrer',
-                                }
-                              : {}
+                              ? wiki.getRevisionUrl(subChange.id, subChange.pageName)
+                              : undefined
                           "
-                          @click="subChange.pageName && markRevisionAsViewed(subChange)"
-                          ><CdxIcon
-                            :icon="cdxIconEdit"
-                            size="x-small"
-                            :class="[
-                              'review-changes__thanks-patrol-summary-icon',
-                              isRevisionViewed(subChange)
-                                ? 'review-changes__thanks-patrol-summary-icon--subtle'
-                                : 'review-changes__thanks-patrol-summary-icon--emphasized',
-                            ]"
-                            aria-hidden="true"
-                          /><template v-if="subChange?.summary?.comment"
-                            ><span
-                              v-if="showDelta"
-                              :class="[
-                                'review-changes__comment',
-                                {
-                                  'review-changes__comment--no-cutout': !showSummaryCutout,
-                                },
-                              ]"
-                              v-html="subChange.summary.comment"
-                            ></span
-                            ><span
-                              v-else
-                              :class="[
-                                'review-changes__comment',
-                                {
-                                  'review-changes__comment--no-cutout': !showSummaryCutout,
-                                },
-                              ]"
-                              v-html="subChange.summary.comment"
-                            ></span></template
+                          :target="subChange.pageName ? '_blank' : undefined"
+                          :rel="subChange.pageName ? 'noopener noreferrer' : undefined"
+                          :aria-label="
+                            subChange.pageName ? `Open diff for ${subChange.pageName}` : undefined
+                          "
+                          @click="
+                            thanksPatrolDiffOnlyInteraction &&
+                            subChange.pageName &&
+                            markRevisionAsViewed(subChange)
+                          "
+                        >
+                          <template v-if="showDelta">
+                            <span
+                              class="review-changes__summary-prefix"
+                              :class="wiki.getDeltaClass(subChange.delta ?? 0, false)"
+                              >{{ formatDelta(subChange.delta) }}</span
+                            >
+                            <span
+                              v-if="
+                                !!(subChange?.summary?.comment || subChange?.comment) ||
+                                showEmptyEditSummary
+                              "
+                              class="review-changes__summary-sep"
+                              aria-hidden="true"
+                              >&nbsp;·&nbsp;</span
+                            ></template
                           ><span
-                            v-else-if="subChange?.comment"
-                            :class="[
-                              'review-changes__comment',
-                              {
-                                'review-changes__comment--no-cutout': !showSummaryCutout,
-                              },
-                            ]"
-                            >{{ subChange.comment }}</span>
+                            v-if="!!(subChange?.summary?.comment || subChange?.comment)"
+                            class="review-changes__thanks-patrol-summary-led"
+                            ><CdxIcon
+                              :icon="cdxIconEdit"
+                              size="x-small"
+                              :class="[
+                                'review-changes__thanks-patrol-summary-icon',
+                                isRevisionViewed(subChange)
+                                  ? 'review-changes__thanks-patrol-summary-icon--subtle'
+                                  : 'review-changes__thanks-patrol-summary-icon--emphasized',
+                              ]"
+                              aria-hidden="true"
+                            /><template v-if="subChange?.summary?.comment"
+                              ><span
+                                v-if="showDelta"
+                                :class="[
+                                  'review-changes__comment',
+                                  {
+                                    'review-changes__comment--no-cutout': !showSummaryCutout,
+                                  },
+                                ]"
+                                v-html="subChange.summary.comment"
+                              ></span
+                              ><span
+                                v-else
+                                :class="[
+                                  'review-changes__comment',
+                                  {
+                                    'review-changes__comment--no-cutout': !showSummaryCutout,
+                                  },
+                                ]"
+                                v-html="subChange.summary.comment"
+                              ></span></template
+                            ><span
+                              v-else-if="subChange?.comment"
+                              :class="[
+                                'review-changes__comment',
+                                {
+                                  'review-changes__comment--no-cutout': !showSummaryCutout,
+                                },
+                              ]"
+                              >{{ subChange.comment }}</span
+                            ></span
+                          >
+                        </component>
+                        <div
+                          v-else
+                          class="review-changes__summary review-changes__summary--thanks-patrol-second-line"
+                        >
+                          <template v-if="showDelta">
+                            <span
+                              class="review-changes__summary-prefix"
+                              :class="wiki.getDeltaClass(subChange.delta ?? 0, false)"
+                              >{{ formatDelta(subChange.delta) }}</span
+                            >
+                            <span
+                              v-if="
+                                !!(subChange?.summary?.comment || subChange?.comment) ||
+                                showEmptyEditSummary
+                              "
+                              class="review-changes__summary-sep"
+                              aria-hidden="true"
+                              >&nbsp;·&nbsp;</span
+                            ></template
+                          ><component
+                            :is="subChange.pageName ? 'a' : 'span'"
+                            v-if="!!(subChange?.summary?.comment || subChange?.comment)"
+                            class="review-changes__thanks-patrol-summary-led"
+                            :class="{
+                              'review-changes__thanks-patrol-summary-hit': !!subChange.pageName,
+                            }"
+                            v-bind="
+                              subChange.pageName
+                                ? {
+                                    href: wiki.getRevisionUrl(subChange.id, subChange.pageName),
+                                    target: '_blank',
+                                    rel: 'noopener noreferrer',
+                                  }
+                                : {}
+                            "
+                            @click="subChange.pageName && markRevisionAsViewed(subChange)"
+                            ><CdxIcon
+                              :icon="cdxIconEdit"
+                              size="x-small"
+                              :class="[
+                                'review-changes__thanks-patrol-summary-icon',
+                                isRevisionViewed(subChange)
+                                  ? 'review-changes__thanks-patrol-summary-icon--subtle'
+                                  : 'review-changes__thanks-patrol-summary-icon--emphasized',
+                              ]"
+                              aria-hidden="true"
+                            /><template v-if="subChange?.summary?.comment"
+                              ><span
+                                v-if="showDelta"
+                                :class="[
+                                  'review-changes__comment',
+                                  {
+                                    'review-changes__comment--no-cutout': !showSummaryCutout,
+                                  },
+                                ]"
+                                v-html="subChange.summary.comment"
+                              ></span
+                              ><span
+                                v-else
+                                :class="[
+                                  'review-changes__comment',
+                                  {
+                                    'review-changes__comment--no-cutout': !showSummaryCutout,
+                                  },
+                                ]"
+                                v-html="subChange.summary.comment"
+                              ></span></template
+                            ><span
+                              v-else-if="subChange?.comment"
+                              :class="[
+                                'review-changes__comment',
+                                {
+                                  'review-changes__comment--no-cutout': !showSummaryCutout,
+                                },
+                              ]"
+                              >{{ subChange.comment }}</span
+                            >
                           </component>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </span>
-              </div>
+                  </span>
+                </div>
               </div>
             </div>
             <span
@@ -1221,6 +1310,8 @@ import {
   type Icon,
   cdxIconAlert,
   cdxIconArrowNext,
+  cdxIconArrowUp,
+  cdxIconBookmark,
   cdxIconCheck,
   cdxIconClock,
   cdxIconEdit,
@@ -1248,8 +1339,23 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { stripLinksFromHtml } from '@/lib/stripHtmlLinks'
 import {
   groupThanksPatrolRevisionsByUserAndPage,
+  thanksPatrolArticleQualityAfterRevId,
+  thanksPatrolArticleQualityBeforeRevId,
   type ThanksPatrolRevisionCluster,
 } from '@/lib/groupThanksPatrolRevisionsByUserAndPage'
+import {
+  editTypesSummaryHasReferenceInsert,
+  fetchLanguageAgnosticArticleQualityScore,
+  goodfaithProbabilityTrue,
+  revertProbabilityTrue,
+  THANKS_PATROL_ARTICLE_QUALITY_EPSILON,
+  THANKS_PATROL_EXCLUDE_GOODFAITH_BELOW,
+  THANKS_PATROL_EXCLUDE_REVERT_RISK_ABOVE,
+  THANKS_PATROL_GOODFAITH_BADGE_MIN,
+  THANKS_PATROL_LOW_REVERT_RISK_BELOW,
+  type ThanksPatrolResolvedSignalBadge,
+  type ThanksPatrolSignalKind,
+} from '@/lib/thanksPatrolSignalBadges'
 import FeedItemTitle from './FeedItemTitle.vue'
 
 /** Review Changes Plus: serialize work to reduce 429s (feed wiki also uses history/LW concurrency 1). */
@@ -1257,6 +1363,16 @@ const PROCESS_REVISIONS_CONCURRENCY = 1
 const RC_SEGMENTS_FETCH_CONCURRENCY = 1
 const REFERENCE_NEED_AND_TONE_CONCURRENCY = 1
 const EDIT_CHECK_PREDICTION_DEBOUNCE_MS = 300
+/** Thanks patrol signals: only fetch Lift Wing for newest N rows (plus buffer for clustering). */
+const THANKS_PATROL_SIGNAL_FETCH_BUFFER = 14
+/** Pause between Lift Wing calls when fetching thanks-patrol signals sequentially. */
+const THANKS_PATROL_LIFT_WING_GAP_MS = 220
+/** Pause between language-agnostic articlequality calls (thanks patrol). */
+const THANKS_PATROL_ARTICLE_QUALITY_GAP_MS = 220
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
 
 export type ReviewChangesSource =
   | 'recentChanges'
@@ -1278,6 +1394,8 @@ type RevisionWithSource = FWRevision & {
   itemSource?: ItemSource
   /** ProtoWiki thanks patrol: revision author has ≤10 edits (from Action API user info). */
   thanksPatrolNewEditor?: boolean
+  /** Parent revision id (thanks patrol external rows). */
+  thanksPatrolParentRevId?: number
 }
 
 const props = withDefaults(
@@ -1378,8 +1496,7 @@ const props = withDefaults(
     /** Cap visible feed items (newest first); omit for no limit. */
     maxDisplayRevisions?: number
     /**
-     * ProtoWiki thanks patrol: compact “**User** edited **Page**” card, sprout “New editor” pill, no timestamp/user icon/footer notice.
-     * Figma’s extra badge variants (article quality, good faith, …) need future signal wiring — only `thanksPatrolNewEditor` is supported here.
+     * ProtoWiki thanks patrol: compact “**User** edited **Page**” card; optional signal pills + sprout “New editor”.
      */
     protowikiThanksPatrolCompactCard?: boolean
     /** When external thanks patrol: merge revisions with same editor + page into one stacked card. */
@@ -1389,6 +1506,10 @@ const props = withDefaults(
      * opens the revision diff. Opened rows grey individually.
      */
     protowikiThanksPatrolDiffOnlyClick?: boolean
+    /**
+     * Thanks patrol: Lift Wing + edit-types + article-quality signals for top-right pills and feed hygiene.
+     */
+    protowikiThanksPatrolSignalBadges?: boolean
   }>(),
   {
     showRevertRiskFlags: false,
@@ -1440,6 +1561,7 @@ const props = withDefaults(
     protowikiThanksPatrolCompactCard: false,
     protowikiThanksPatrolGroupSamePageEdits: false,
     protowikiThanksPatrolDiffOnlyClick: false,
+    protowikiThanksPatrolSignalBadges: false,
   },
 )
 
@@ -1461,6 +1583,28 @@ const wiki = new FakeWiki('https://en.wikipedia.org/', {
 const thanksPatrolDiffOnlyInteraction = computed(
   () => props.protowikiThanksPatrolDiffOnlyClick && props.protowikiThanksPatrolCompactCard,
 )
+
+const thanksPatrolSignalBadgesEnabled = computed(
+  () =>
+    props.protowikiExternalFeed === true &&
+    props.protowikiThanksPatrolCompactCard === true &&
+    props.protowikiThanksPatrolSignalBadges === true,
+)
+
+function liftWingModelsForPredictionFetch(): FWPredictionModel[] {
+  const models: FWPredictionModel[] = props.showRevertRisk
+    ? ['revertrisk', 'revertrisk-multilingual']
+    : ['revertrisk']
+  if (
+    props.protowikiExternalFeed &&
+    props.protowikiThanksPatrolCompactCard &&
+    props.protowikiThanksPatrolSignalBadges &&
+    !models.includes('goodfaith')
+  ) {
+    models.push('goodfaith')
+  }
+  return models
+}
 
 function singleThanksOuterTag(change: FWRevision): 'a' | 'div' {
   if (thanksPatrolDiffOnlyInteraction.value) return 'div'
@@ -1616,6 +1760,9 @@ async function enrichRevisionsWithTags(revisions: FWRevision[]): Promise<FWRevis
 const revertRiskByRevId = ref<Map<number, FWPredictionByModel | { error: true }>>(new Map())
 const isLoadingRevertRisk = ref(false)
 
+/** Language-agnostic articlequality scores per revision id (thanks patrol signal badges). */
+const articleQualityByRevId = ref<Map<number, number | null | 'error'>>(new Map())
+
 const referenceNeedByRevId = ref<
   Map<number, { delta: number; before: number; after: number } | { error: true }>
 >(new Map())
@@ -1630,6 +1777,14 @@ const isLoadingToneCheck = ref(false)
  * clears it (after localStorage hydrate).
  */
 const deferPredictionFetchesUntilFeedReload = ref(false)
+/**
+ * External thanks patrol: each feed Refresh increments credits; the next `loadFeed(false)` run that
+ * consumes one credit may hit Lift Wing / articlequality / short-desc. Extra watch churn without a
+ * refresh credit leaves `deferPredictionFetchesUntilFeedReload` unchanged after the first network pass.
+ */
+const patrolRefreshCredits = ref(0)
+/** True after we have allowed at least one refresh-network pass (duplicate prop loads must not flip defer back). */
+const patrolHadRefreshNetworkPass = ref(false)
 /** Show tone check flag when prediction is true and probability >= this (0–1). */
 const TONE_CHECK_THRESHOLD = 0.55
 
@@ -1713,8 +1868,9 @@ function getEditCheckDebugLines(change: FWRevision): Array<{ label: string; valu
       } else if (tcEntry === null) {
         lines.push({ label: 'Tone check', value: '(no changes)' })
       } else {
-        const pred = tcEntry.prediction ? 'yes' : 'no'
-        const prob = (tcEntry.probability * 100).toFixed(1)
+        const tc = tcEntry as FWToneCheckPrediction
+        const pred = tc.prediction ? 'yes' : 'no'
+        const prob = (tc.probability * 100).toFixed(1)
         lines.push({ label: 'Tone check', value: `${pred}, ${prob}%` })
       }
     }
@@ -1810,6 +1966,55 @@ function revertRiskEntryIsComplete(
   return models.every((m) => by[m] != null)
 }
 
+/**
+ * Thanks patrol feed hygiene: hide only once **both** Lift Wing scores are known and cross thresholds.
+ * While loading or partially cached, keep the row visible so the list renders immediately.
+ */
+function thanksPatrolRevisionPassesSafetyFilters(revision: FWRevision): boolean {
+  const entry = revertRiskByRevId.value.get(revision.id)
+  if (!entry || ('error' in entry && entry.error)) return true
+  const by = entry as FWPredictionByModel
+  const rrProb = revertProbabilityTrue(by.revertrisk)
+  const gfProb = goodfaithProbabilityTrue(by.goodfaith)
+  const rrKnown = typeof rrProb === 'number'
+  const gfKnown = typeof gfProb === 'number'
+  if (!rrKnown || !gfKnown) return true
+  if (rrProb > THANKS_PATROL_EXCLUDE_REVERT_RISK_ABOVE) return false
+  if (gfProb < THANKS_PATROL_EXCLUDE_GOODFAITH_BELOW) return false
+  return true
+}
+
+/** Max revision rows we run Lift Wing / edit-types / articlequality against (thanks patrol signals). */
+function thanksPatrolSignalFetchRevisionBudget(): number {
+  const cap = props.maxDisplayRevisions
+  const base = typeof cap === 'number' && cap > 0 ? cap : 24
+  return Math.min(base + THANKS_PATROL_SIGNAL_FETCH_BUFFER, 48)
+}
+
+/** Newest-first slice of patrol revisions for bounded signal network work. */
+function thanksPatrolSortedCandidateRevisionsForSignals(): FWRevision[] {
+  let source = selectedRevisionsForDisplay.value.filter(
+    (revision) => !dismissedRevisionIds.value.has(revision.id),
+  )
+  source = [...source].sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+  )
+  return source.slice(0, thanksPatrolSignalFetchRevisionBudget())
+}
+
+function mergeThanksPatrolPredictionEntry(
+  prev: FWPredictionByModel | { error: true } | undefined,
+  incoming: FWPredictionByModel,
+): FWPredictionByModel | { error: true } {
+  const hasIncoming = incoming && Object.keys(incoming).length > 0
+  if (!hasIncoming) {
+    if (prev && !('error' in prev && prev.error)) return prev as FWPredictionByModel
+    return { error: true }
+  }
+  if (!prev || ('error' in prev && prev.error)) return incoming
+  return { ...(prev as FWPredictionByModel), ...incoming }
+}
+
 /** Same upper band as elevated revert-risk notices; false if prediction missing or incomplete. */
 function revertRiskScoreMeetsUpperThreshold(revision: FWRevision): boolean {
   const entry = revertRiskByRevId.value.get(revision.id)
@@ -1862,17 +2067,18 @@ async function fetchRevertRiskForFeed(): Promise<void> {
     console.log('[ReviewChangesPlus][revert-risk-check] skipped: waiting for Refresh')
     return
   }
-  // Invariant: analysis must only run for currently displayed rows.
-  const revs: FWRevision[] = [...selectedRevisionsForDisplay.value]
+
+  const revs: FWRevision[] = thanksPatrolSignalBadgesEnabled.value
+    ? thanksPatrolSortedCandidateRevisionsForSignals()
+    : [...selectedRevisionsForDisplay.value]
+
   if (revs.length === 0) {
     console.log('[ReviewChangesPlus][revert-risk-check] skipped: no displayed revisions')
     return
   }
   const revIds = revs.map((r) => r.id)
   const prev = revertRiskByRevId.value
-  const models: FWPredictionModel[] = props.showRevertRisk
-    ? ['revertrisk', 'revertrisk-multilingual']
-    : ['revertrisk']
+  const models = liftWingModelsForPredictionFetch()
   const toFetch = revIds.filter((id) => !revertRiskEntryIsComplete(prev.get(id), models))
   if (toFetch.length === 0) {
     console.log(
@@ -1887,12 +2093,42 @@ async function fetchRevertRiskForFeed(): Promise<void> {
     schedulePersistFeedBundleSave()
     return
   }
-  isLoadingRevertRisk.value = true
+
   const next = new Map<number, FWPredictionByModel | { error: true }>()
   for (const id of revIds) {
     const e = prev.get(id)
     if (revertRiskEntryIsComplete(e, models)) next.set(id, e as FWPredictionByModel)
   }
+
+  const patrolSignalsSequential = thanksPatrolSignalBadgesEnabled.value
+
+  if (patrolSignalsSequential) {
+    const pageNameByRevId = new Map(revs.map((r) => [r.id, r.pageName ?? '(unknown page)']))
+    try {
+      for (const revId of toFetch) {
+        console.log(
+          `[ReviewChangesPlus][revert-risk-check][patrol-sequential] revId=${revId} page=${pageNameByRevId.get(revId) ?? '(unknown page)'}`,
+        )
+        try {
+          const predictions = await wiki.getRevisionPredictions([revId], models)
+          const incoming = predictions[revId] ?? {}
+          const base = next.get(revId) ?? prev.get(revId)
+          const merged = mergeThanksPatrolPredictionEntry(base, incoming)
+          next.set(revId, merged)
+          revertRiskByRevId.value = new Map(next)
+        } catch {
+          next.set(revId, { error: true })
+          revertRiskByRevId.value = new Map(next)
+        }
+        await sleep(THANKS_PATROL_LIFT_WING_GAP_MS)
+      }
+    } finally {
+      schedulePersistFeedBundleSave()
+    }
+    return
+  }
+
+  isLoadingRevertRisk.value = true
   try {
     const pageNameByRevId = new Map(revs.map((r) => [r.id, r.pageName ?? '(unknown page)']))
     for (const revId of toFetch) {
@@ -2698,8 +2934,10 @@ function collectPageNamesFromSnapshot(s: ReviewChangesFeedSnapshot): Set<string>
   return names
 }
 
-type PersistedFeedBundleV1 = {
-  version: 1
+/** Local prediction cache: snapshot + Lift Wing / articlequality / edit-types / short descriptions. */
+type PersistedFeedBundle = {
+  /** v2 adds articleQualityEntries; v1 loads with empty article quality. */
+  version: 1 | 2
   snapshot: ReviewChangesFeedSnapshot
   shortDescriptions: [string, string | null][]
   revertRiskEntries: [number, FWPredictionByModel | { error: true }][]
@@ -2711,18 +2949,27 @@ type PersistedFeedBundleV1 = {
   /** Normalized edit-types summaries for structured deltas (revision ids in current feed). */
   editTypesSummaries?: [number, FWEditTypesDiffSummary | null][]
   editTypesErrors?: [number, string][]
+  /** Language-agnostic articlequality scores (thanks patrol signal badges). */
+  articleQualityEntries?: [number, number | null | 'error'][]
 }
 
 const PERSISTED_FEED_KEY_PREFIX = 'review-changes-plus-feed-v1:'
 
-function storageKeyForFeed(source: ReviewChangesSource): string {
-  return `${PERSISTED_FEED_KEY_PREFIX}${source}`
+/** Storage scope: external thanks patrol uses its own key so it does not clash with in-app Recent Changes. */
+function persistStorageScope(): string {
+  if (props.protowikiExternalFeed) return 'thanks-patrol-external'
+  return props.source ?? 'recentChanges'
 }
 
-function parsePersistedFeedBundleJson(raw: string): PersistedFeedBundleV1 | null {
+function storageKeyForFeed(scope: string): string {
+  return `${PERSISTED_FEED_KEY_PREFIX}${scope}`
+}
+
+function parsePersistedFeedBundleJson(raw: string): PersistedFeedBundle | null {
   try {
     const o = JSON.parse(raw) as Record<string, unknown>
-    if (o.version !== 1 || !o.snapshot || typeof o.snapshot !== 'object') return null
+    if ((o.version !== 1 && o.version !== 2) || !o.snapshot || typeof o.snapshot !== 'object')
+      return null
     const snap = o.snapshot as ReviewChangesFeedSnapshot
     if (!Array.isArray(snap.allRevisionsData)) return null
     if (!Array.isArray(snap.selectedRevisions)) return null
@@ -2735,42 +2982,77 @@ function parsePersistedFeedBundleJson(raw: string): PersistedFeedBundleV1 | null
       ;(snap as ReviewChangesFeedSnapshot).mixedPagesIveEditedData = []
     }
     return {
-      version: 1,
+      version: o.version === 2 ? 2 : 1,
       snapshot: JSON.parse(JSON.stringify(snap)) as ReviewChangesFeedSnapshot,
       shortDescriptions: (Array.isArray(o.shortDescriptions)
         ? o.shortDescriptions
-        : []) as PersistedFeedBundleV1['shortDescriptions'],
+        : []) as PersistedFeedBundle['shortDescriptions'],
       revertRiskEntries: (Array.isArray(o.revertRiskEntries)
         ? o.revertRiskEntries
-        : []) as PersistedFeedBundleV1['revertRiskEntries'],
+        : []) as PersistedFeedBundle['revertRiskEntries'],
       referenceNeedEntries: (Array.isArray(o.referenceNeedEntries)
         ? o.referenceNeedEntries
-        : []) as PersistedFeedBundleV1['referenceNeedEntries'],
+        : []) as PersistedFeedBundle['referenceNeedEntries'],
       toneCheckEntries: (Array.isArray(o.toneCheckEntries)
         ? o.toneCheckEntries
-        : []) as PersistedFeedBundleV1['toneCheckEntries'],
+        : []) as PersistedFeedBundle['toneCheckEntries'],
       editTypesSummaries: (Array.isArray(o.editTypesSummaries)
         ? o.editTypesSummaries
-        : []) as NonNullable<PersistedFeedBundleV1['editTypesSummaries']>,
+        : []) as NonNullable<PersistedFeedBundle['editTypesSummaries']>,
       editTypesErrors: (Array.isArray(o.editTypesErrors) ? o.editTypesErrors : []) as NonNullable<
-        PersistedFeedBundleV1['editTypesErrors']
+        PersistedFeedBundle['editTypesErrors']
       >,
+      articleQualityEntries: (Array.isArray(o.articleQualityEntries)
+        ? o.articleQualityEntries
+        : []) as NonNullable<PersistedFeedBundle['articleQualityEntries']>,
     }
   } catch {
     return null
   }
 }
 
-function loadPersistedFeedBundleForSource(
-  source: ReviewChangesSource,
-): PersistedFeedBundleV1 | null {
+function loadPersistedFeedBundleForScope(scope: string): PersistedFeedBundle | null {
   try {
-    const raw = localStorage.getItem(storageKeyForFeed(source))
+    const raw = localStorage.getItem(storageKeyForFeed(scope))
     if (!raw) return null
     return parsePersistedFeedBundleJson(raw)
   } catch {
     return null
   }
+}
+
+/** Restore Lift Wing, reference/tone checks, short descriptions, articlequality from a persisted bundle row. */
+function hydratePredictionMapsFromPersistedBundle(
+  bundle: PersistedFeedBundle | null,
+  snap: ReviewChangesFeedSnapshot,
+): void {
+  if (!bundle) {
+    revertRiskByRevId.value = new Map()
+    referenceNeedByRevId.value = new Map()
+    toneCheckByRevId.value = new Map()
+    shortDescriptionByPage.value = new Map()
+    articleQualityByRevId.value = new Map()
+    return
+  }
+  const allowedRevIds = collectRevisionIdsFromSnapshot(snap)
+  const allowedPages = collectPageNamesFromSnapshot(snap)
+  revertRiskByRevId.value = new Map(
+    bundle.revertRiskEntries.filter(([id]) => allowedRevIds.has(id)),
+  )
+  referenceNeedByRevId.value = new Map(
+    bundle.referenceNeedEntries.filter(([id]) => allowedRevIds.has(id)),
+  )
+  toneCheckByRevId.value = new Map(
+    bundle.toneCheckEntries.filter(([id]) => allowedRevIds.has(id)),
+  )
+  const shortDesc = new Map<string, string | null>()
+  for (const [page, desc] of bundle.shortDescriptions) {
+    if (allowedPages.has(page)) shortDesc.set(page, desc)
+  }
+  shortDescriptionByPage.value = shortDesc
+  articleQualityByRevId.value = new Map(
+    (bundle.articleQualityEntries ?? []).filter(([id]) => allowedRevIds.has(id)),
+  )
 }
 
 const lastSuccessfulFeedSnapshot = ref<ReviewChangesFeedSnapshot | null>(null)
@@ -2841,9 +3123,8 @@ function restoreLastSuccessfulFeed(): void {
   errors.value = []
   lastFeedErrorWasRateLimit.value = false
   lastLoadedDataNotice.value = 'Showing data from before this refresh.'
-  revertRiskByRevId.value = new Map()
-  referenceNeedByRevId.value = new Map()
-  toneCheckByRevId.value = new Map()
+  const persistedForRestore = loadPersistedFeedBundleForScope(persistStorageScope())
+  hydratePredictionMapsFromPersistedBundle(persistedForRestore, snap)
   deferPredictionFetchesUntilFeedReload.value = false
   if (
     props.showRevertRisk ||
@@ -2855,12 +3136,11 @@ function restoreLastSuccessfulFeed(): void {
   if (props.showEditCheckOtherFlag || props.showToneCheckFlag || props.showDebugChecks) {
     scheduleEditCheckPredictionFetches(0)
   }
-  const persistedForRestore = loadPersistedFeedBundleForSource(props.source ?? 'recentChanges')
   if (
-    props.showStructuredDeltasForFlaggedUnviewed &&
     structuredDeltas &&
     persistedForRestore &&
-    (persistedForRestore.editTypesSummaries?.length || persistedForRestore.editTypesErrors?.length)
+    (persistedForRestore.editTypesSummaries?.length || persistedForRestore.editTypesErrors?.length) &&
+    (props.showStructuredDeltasForFlaggedUnviewed || thanksPatrolSignalBadgesEnabled.value)
   ) {
     structuredDeltas.hydrateFromEntries(
       persistedForRestore.editTypesSummaries ?? [],
@@ -2887,12 +3167,11 @@ function savePersistedFeedBundleNow(): void {
     if (!isFeedSnapshotNonEmpty(snap)) return
     const allowedRevIds = collectRevisionIdsFromSnapshot(snap)
     const allowedPageNames = collectPageNamesFromSnapshot(snap)
-    const storageKey = storageKeyForFeed(props.source ?? 'recentChanges')
-    const prevBundle = loadPersistedFeedBundleForSource(props.source ?? 'recentChanges')
+    const scope = persistStorageScope()
+    const storageKey = storageKeyForFeed(scope)
+    const prevBundle = loadPersistedFeedBundleForScope(scope)
 
-    const predictionModels: FWPredictionModel[] = props.showRevertRisk
-      ? ['revertrisk', 'revertrisk-multilingual']
-      : ['revertrisk']
+    const predictionModels: FWPredictionModel[] = liftWingModelsForPredictionFetch()
 
     const revertRisk = new Map(revertRiskByRevId.value)
     if (prevBundle) {
@@ -2937,9 +3216,20 @@ function savePersistedFeedBundleNow(): void {
       }
     }
 
+    const articleQuality = new Map(articleQualityByRevId.value)
+    if (prevBundle) {
+      for (const [id, entry] of prevBundle.articleQualityEntries ?? []) {
+        if (!allowedRevIds.has(id)) continue
+        if (!articleQuality.has(id)) articleQuality.set(id, entry)
+      }
+    }
+
     let editTypesSummaries: [number, FWEditTypesDiffSummary | null][] = []
     let editTypesErrors: [number, string][] = []
-    if (props.showStructuredDeltasForFlaggedUnviewed && structuredDeltas) {
+    if (
+      (props.showStructuredDeltasForFlaggedUnviewed || thanksPatrolSignalBadgesEnabled.value) &&
+      structuredDeltas
+    ) {
       const summ = new Map(structuredDeltas.editTypesByRevId.value)
       const err = new Map(structuredDeltas.editTypesErrorByRevId.value)
       if (prevBundle) {
@@ -2955,8 +3245,8 @@ function savePersistedFeedBundleNow(): void {
       editTypesSummaries = [...summ.entries()].filter(([id]) => allowedRevIds.has(id))
       editTypesErrors = [...err.entries()].filter(([id]) => allowedRevIds.has(id))
     }
-    const bundle: PersistedFeedBundleV1 = {
-      version: 1,
+    const bundle: PersistedFeedBundle = {
+      version: 2,
       snapshot: cloneForFeedSnapshot(snap),
       shortDescriptions: [...shortDesc.entries()].filter(([p]) => allowedPageNames.has(p)),
       revertRiskEntries: [...revertRisk.entries()].filter(([id]) => allowedRevIds.has(id)),
@@ -2964,6 +3254,7 @@ function savePersistedFeedBundleNow(): void {
       toneCheckEntries: [...toneCheck.entries()].filter(([id]) => allowedRevIds.has(id)),
       editTypesSummaries,
       editTypesErrors,
+      articleQualityEntries: [...articleQuality.entries()].filter(([id]) => allowedRevIds.has(id)),
     }
     localStorage.setItem(storageKey, JSON.stringify(bundle))
   } catch {
@@ -2987,14 +3278,17 @@ function schedulePersistFeedBundleIfSkippingPredictionFetches(): void {
     props.requireRecentChangesMeetRevertRiskThresholds ||
     props.showEditCheckOtherFlag ||
     props.showToneCheckFlag ||
-    props.showDebugChecks
+    props.showDebugChecks ||
+    (props.protowikiExternalFeed &&
+      props.protowikiThanksPatrolCompactCard &&
+      props.protowikiThanksPatrolSignalBadges)
   ) {
     return
   }
   schedulePersistFeedBundleSave()
 }
 
-function applyPersistedFeedBundle(bundle: PersistedFeedBundleV1): void {
+function applyPersistedFeedBundle(bundle: PersistedFeedBundle): void {
   const snap = bundle.snapshot
   allRevisionsData.value = cloneForFeedSnapshot(snap.allRevisionsData)
   selectedRevisions.value = cloneForFeedSnapshot(snap.selectedRevisions)
@@ -3008,14 +3302,15 @@ function applyPersistedFeedBundle(bundle: PersistedFeedBundleV1): void {
   mixedRelatedChangesData.value = cloneForFeedSnapshot(snap.mixedRelatedChangesData)
   rccontinue.value = snap.rccontinue
   lastSuccessfulFeedSnapshot.value = cloneForFeedSnapshot(snap)
-  revertRiskByRevId.value = new Map(bundle.revertRiskEntries)
-  referenceNeedByRevId.value = new Map(bundle.referenceNeedEntries)
-  toneCheckByRevId.value = new Map(bundle.toneCheckEntries)
-  shortDescriptionByPage.value = new Map(bundle.shortDescriptions)
+  hydratePredictionMapsFromPersistedBundle(bundle, snap)
   errors.value = []
   lastFeedErrorWasRateLimit.value = false
   lastLoadedDataNotice.value = ''
-  if (props.showStructuredDeltasForFlaggedUnviewed && structuredDeltas) {
+  if (
+    structuredDeltas &&
+    (bundle.editTypesSummaries?.length || bundle.editTypesErrors?.length) &&
+    (props.showStructuredDeltasForFlaggedUnviewed || thanksPatrolSignalBadgesEnabled.value)
+  ) {
     structuredDeltas.hydrateFromEntries(
       bundle.editTypesSummaries ?? [],
       bundle.editTypesErrors ?? [],
@@ -3044,15 +3339,14 @@ function clearFeedToEmptyState(): void {
   lastLoadedDataNotice.value = ''
   structuredDeltas?.resetStructuredDeltaState()
   deferPredictionFetchesUntilFeedReload.value = false
+  articleQualityByRevId.value = new Map()
 }
 
 function tryHydrateFromPersistedCache(): void {
   if (props.protowikiExternalFeed) {
-    clearFeedToEmptyState()
     return
   }
-  const source = props.source ?? 'recentChanges'
-  const bundle = loadPersistedFeedBundleForSource(source)
+  const bundle = loadPersistedFeedBundleForScope(persistStorageScope())
   if (bundle && isFeedSnapshotNonEmpty(bundle.snapshot)) {
     applyPersistedFeedBundle(bundle)
     return
@@ -3063,6 +3357,7 @@ function tryHydrateFromPersistedCache(): void {
 function refreshFeed(): void {
   clearViewedRevisions()
   if (props.protowikiExternalFeed) {
+    patrolRefreshCredits.value += 1
     emit('protowikiRequestRefresh')
     return
   }
@@ -3301,7 +3596,24 @@ async function processRevisions(
 }
 
 async function loadFeed(append = false): Promise<void> {
-  deferPredictionFetchesUntilFeedReload.value = false
+  /** External patrol only: true when this run consumed a refresh credit (Lift Wing allowed). */
+  let externalPatrolAllowNetwork = false
+  if (props.protowikiExternalFeed && !append) {
+    if (patrolRefreshCredits.value > 0) {
+      patrolRefreshCredits.value -= 1
+      externalPatrolAllowNetwork = true
+      deferPredictionFetchesUntilFeedReload.value = false
+      patrolHadRefreshNetworkPass.value = true
+    } else {
+      externalPatrolAllowNetwork = false
+      if (!patrolHadRefreshNetworkPass.value) {
+        deferPredictionFetchesUntilFeedReload.value = true
+      }
+    }
+  } else if (!props.protowikiExternalFeed) {
+    deferPredictionFetchesUntilFeedReload.value = false
+  }
+
   if (!append) {
     isLoading.value = true
     errors.value = []
@@ -3325,8 +3637,29 @@ async function loadFeed(append = false): Promise<void> {
       mixedPagesIveEditedData.value = []
       mixedRelatedChangesData.value = []
       isLoading.value = false
-      void fetchShortDescriptionsForFeed()
-      schedulePersistFeedBundleIfSkippingPredictionFetches()
+      const snap = snapshotFromCurrentRefs()
+      const prevBundle = loadPersistedFeedBundleForScope(persistStorageScope())
+      hydratePredictionMapsFromPersistedBundle(prevBundle, snap)
+      if (
+        thanksPatrolSignalBadgesEnabled.value &&
+        structuredDeltas &&
+        prevBundle &&
+        (prevBundle.editTypesSummaries?.length || prevBundle.editTypesErrors?.length)
+      ) {
+        structuredDeltas.hydrateFromEntries(
+          prevBundle.editTypesSummaries ?? [],
+          prevBundle.editTypesErrors ?? [],
+        )
+      }
+      if (externalPatrolAllowNetwork) {
+        void fetchShortDescriptionsForFeed()
+        if (props.protowikiThanksPatrolCompactCard && props.protowikiThanksPatrolSignalBadges) {
+          void fetchRevertRiskForFeed().then(() => {
+            if (thanksPatrolSignalBadgesEnabled.value) void fetchArticleQualityForFeed()
+          })
+        }
+      }
+      schedulePersistFeedBundleSave()
       return
     }
 
@@ -3722,6 +4055,9 @@ const flatCappedFeedRevisions = computed(() => {
   source = [...source].sort(
     (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
   )
+  if (thanksPatrolSignalBadgesEnabled.value) {
+    source = source.filter((r) => thanksPatrolRevisionPassesSafetyFilters(r))
+  }
   const cap = props.maxDisplayRevisions
   if (typeof cap === 'number' && cap > 0) {
     source = source.slice(0, cap)
@@ -3731,8 +4067,7 @@ const flatCappedFeedRevisions = computed(() => {
 
 /** External thanks-patrol compact feed: one DOM shape (cluster card) for 1 or N edits per card. */
 const thanksPatrolUsesUnifiedClusterCard = computed(
-  () =>
-    props.protowikiExternalFeed === true && props.protowikiThanksPatrolCompactCard === true,
+  () => props.protowikiExternalFeed === true && props.protowikiThanksPatrolCompactCard === true,
 )
 
 const thanksPatrolClusterFeedMode = computed(
@@ -3756,9 +4091,7 @@ function clusterHasAnyViewed(cluster: ThanksPatrolRevisionCluster): boolean {
 
 /** Every stacked edit’s diff has been opened (thanks patrol diff-only full-card chrome). */
 function clusterAllViewed(cluster: ThanksPatrolRevisionCluster): boolean {
-  return (
-    cluster.revisions.length > 0 && cluster.revisions.every((r) => isRevisionViewed(r))
-  )
+  return cluster.revisions.length > 0 && cluster.revisions.every((r) => isRevisionViewed(r))
 }
 
 function clusterHasLastClicked(cluster: ThanksPatrolRevisionCluster): boolean {
@@ -3769,6 +4102,36 @@ function clusterHasLastClicked(cluster: ThanksPatrolRevisionCluster): boolean {
 function clusterChromeRevision(cluster: ThanksPatrolRevisionCluster): FWRevision {
   const u = cluster.revisions.find((r) => !isRevisionViewed(r))
   return u ?? cluster.revisions[0]
+}
+
+async function fetchArticleQualityForFeed(): Promise<void> {
+  if (!thanksPatrolSignalBadgesEnabled.value) return
+  if (deferPredictionFetchesUntilFeedReload.value) return
+  const rows = thanksPatrolSortedCandidateRevisionsForSignals()
+  const clusters = thanksPatrolClusterFeedMode.value
+    ? groupThanksPatrolRevisionsByUserAndPage(rows)
+    : rows.map((r) => ({ key: `r-${r.id}`, revisions: [r] }))
+  const need = new Set<number>()
+  for (const c of clusters) {
+    const b = thanksPatrolArticleQualityBeforeRevId(c)
+    const a = thanksPatrolArticleQualityAfterRevId(c)
+    if (b > 0) need.add(b)
+    if (a > 0) need.add(a)
+  }
+  const prev = articleQualityByRevId.value
+  const toFetch = [...need].filter((id) => !prev.has(id))
+  if (toFetch.length === 0) {
+    schedulePersistFeedBundleSave()
+    return
+  }
+  const next = new Map(prev)
+  for (const revId of toFetch) {
+    const score = await fetchLanguageAgnosticArticleQualityScore(revId, 'en', PROTOWIKI_API_UA)
+    next.set(revId, score === null ? 'error' : score)
+    articleQualityByRevId.value = new Map(next)
+    await sleep(THANKS_PATROL_ARTICLE_QUALITY_GAP_MS)
+  }
+  schedulePersistFeedBundleSave()
 }
 
 const revisionsByDate = computed(() => {
@@ -3838,11 +4201,15 @@ const showEmptyCacheNotice = computed(
 
 const revisionsOnScreen = computed(() => flatCappedFeedRevisions.value)
 
-const structuredDeltaRevisionIds = computed(() =>
-  props.showStructuredDeltasForFlaggedUnviewed
-    ? revisionsOnScreen.value.filter((r) => hasAnyFlag(r)).map((r) => r.id)
-    : [],
-)
+const structuredDeltaRevisionIds = computed(() => {
+  if (thanksPatrolSignalBadgesEnabled.value) {
+    return thanksPatrolSortedCandidateRevisionsForSignals().map((r) => r.id)
+  }
+  if (props.showStructuredDeltasForFlaggedUnviewed) {
+    return revisionsOnScreen.value.filter((r) => hasAnyFlag(r)).map((r) => r.id)
+  }
+  return []
+})
 
 /** Empty while hydrating from localStorage so edit-types API does not run until Refresh. */
 const structuredDeltaRevisionIdsForAutoLoad = computed(() =>
@@ -3884,7 +4251,84 @@ watch(
     () => structuredDeltas?.editTypesErrorByRevId.value,
   ],
   () => {
-    if (props.showStructuredDeltasForFlaggedUnviewed) schedulePersistFeedBundleSave()
+    if (props.showStructuredDeltasForFlaggedUnviewed || thanksPatrolSignalBadgesEnabled.value) {
+      schedulePersistFeedBundleSave()
+    }
+  },
+)
+
+function thanksPatrolSignalBadgeIcon(kind: ThanksPatrolSignalKind): Icon {
+  if (kind === 'reference') return cdxIconBookmark
+  if (kind === 'articleQuality') return cdxIconArrowUp
+  if (kind === 'lowRisk') return cdxIconCheck
+  return cdxIconHeart
+}
+
+function thanksPatrolResolvedSignalBadgeForCluster(
+  cluster: ThanksPatrolRevisionCluster,
+): ThanksPatrolResolvedSignalBadge | null {
+  if (!thanksPatrolSignalBadgesEnabled.value) return null
+
+  if (structuredDeltas) {
+    const sm = structuredDeltas.editTypesByRevId.value
+    for (const r of cluster.revisions) {
+      const summ = sm.get(r.id) as FWEditTypesDiffSummary | null | undefined
+      if (editTypesSummaryHasReferenceInsert(summ)) {
+        return { kind: 'reference', label: 'Added reference' }
+      }
+    }
+  }
+
+  const beforeId = thanksPatrolArticleQualityBeforeRevId(cluster)
+  const afterId = thanksPatrolArticleQualityAfterRevId(cluster)
+  if (beforeId > 0 && afterId > 0) {
+    const sb = articleQualityByRevId.value.get(beforeId)
+    const sa = articleQualityByRevId.value.get(afterId)
+    if (
+      typeof sb === 'number' &&
+      typeof sa === 'number' &&
+      sa > sb + THANKS_PATROL_ARTICLE_QUALITY_EPSILON
+    ) {
+      return { kind: 'articleQuality', label: 'Article quality' }
+    }
+  }
+
+  const chrome = clusterChromeRevision(cluster)
+  const entry = revertRiskByRevId.value.get(chrome.id)
+  if (entry && !('error' in entry && entry.error)) {
+    const by = entry as FWPredictionByModel
+    const rr = revertProbabilityTrue(by.revertrisk ?? undefined)
+    if (typeof rr === 'number' && rr < THANKS_PATROL_LOW_REVERT_RISK_BELOW) {
+      return { kind: 'lowRisk', label: 'Low risk' }
+    }
+    const gf = goodfaithProbabilityTrue(by.goodfaith ?? undefined)
+    if (typeof gf === 'number' && gf >= THANKS_PATROL_GOODFAITH_BADGE_MIN) {
+      return { kind: 'goodFaith', label: 'Good faith' }
+    }
+  }
+
+  return null
+}
+
+function thanksPatrolResolvedSignalBadgeForSingle(
+  change: FWRevision,
+): ThanksPatrolResolvedSignalBadge | null {
+  return thanksPatrolResolvedSignalBadgeForCluster({
+    key: `single-${change.id}`,
+    revisions: [change],
+  })
+}
+
+watch(
+  [
+    () =>
+      thanksPatrolSortedCandidateRevisionsForSignals()
+        .map((r) => r.id)
+        .join(','),
+    thanksPatrolSignalBadgesEnabled,
+  ],
+  () => {
+    if (thanksPatrolSignalBadgesEnabled.value) void fetchArticleQualityForFeed()
   },
 )
 

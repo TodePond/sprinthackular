@@ -81,7 +81,11 @@ interface UserContribRaw {
   title?: string
 }
 
-export type ThanksPatrolFwRevision = FWRevision & { thanksPatrolNewEditor?: boolean }
+export type ThanksPatrolFwRevision = FWRevision & {
+  thanksPatrolNewEditor?: boolean
+  /** Parent revision id from Action API `parentid` (0 if none). */
+  thanksPatrolParentRevId?: number
+}
 
 export function useProtoThanksPatrolRevisions(options: {
   usernameStorageKey: string
@@ -143,6 +147,8 @@ export function useProtoThanksPatrolRevisions(options: {
           ),
         },
         thanksPatrolNewEditor: isNewEditorByEditcount(r.patrolSubjectEditorEditcount),
+        thanksPatrolParentRevId:
+          typeof r.parentid === 'number' && !Number.isNaN(r.parentid) ? r.parentid : 0,
       }))
   }
 

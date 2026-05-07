@@ -146,9 +146,13 @@
 
 /* Only when no coarse pointer */
 @media (pointer: fine) {
-  .review-changes__item-link:hover:not(.review-changes__item-link--thanks-patrol-diff-only-shell):not(
-      .review-changes__thanks-patrol-cluster-shell--diff-only
-    ):not(.review-changes__item-link--revision-viewed) {
+  .review-changes__item-link:hover:not(
+      .review-changes__item-link--thanks-patrol-diff-only-shell
+    ):not(.review-changes__thanks-patrol-cluster-shell--diff-only):not(
+      .review-changes__item-link--revision-viewed
+    ):not(.review-changes__item-link--thanks-patrol-signal-flag):not(
+      .review-changes__thanks-patrol-cluster-shell--signal-flag
+    ) {
     border-color: var(--border-color-base);
     /* box-sizing: auto; */
   }
@@ -191,9 +195,11 @@
   cursor: default;
 }
 
-.review-changes__item-link--not-link:hover:not(.review-changes__item-link--thanks-patrol-diff-only-shell):not(
-    .review-changes__thanks-patrol-cluster-shell--diff-only
-  ) {
+.review-changes__item-link--not-link:hover:not(
+    .review-changes__item-link--thanks-patrol-diff-only-shell
+  ):not(.review-changes__thanks-patrol-cluster-shell--diff-only):not(
+    .review-changes__item-link--thanks-patrol-signal-flag
+  ):not(.review-changes__thanks-patrol-cluster-shell--signal-flag) {
   background-color: transparent;
   border-color: transparent;
   border-width: 1px;
@@ -235,16 +241,32 @@
 
   .review-changes__item-link--thanks-patrol-diff-only-shell:not(
       .review-changes__item-link--primary-unviewed-new-editor
-    ):not(.review-changes__item-link--revision-viewed):hover,
+    ):not(.review-changes__item-link--thanks-patrol-signal-flag):not(
+      .review-changes__item-link--revision-viewed
+    ):hover,
   .review-changes__thanks-patrol-cluster-shell--diff-only:not(
       .review-changes__item-link--primary-unviewed-new-editor
-    ):not(.review-changes__item-link--revision-viewed):hover {
+    ):not(.review-changes__thanks-patrol-cluster-shell--signal-flag):not(
+      .review-changes__item-link--revision-viewed
+    ):hover {
     border-color: var(--background-color-neutral);
   }
 
   .review-changes__item-link--thanks-patrol-diff-only-shell.review-changes__item-link--primary-unviewed-new-editor:hover,
   .review-changes__thanks-patrol-cluster-shell--diff-only.review-changes__item-link--primary-unviewed-new-editor:hover {
     border-color: var(--border-color-success, #099979);
+    border-width: 1px;
+    margin: 0;
+  }
+
+  /* Blue signal border: same treatment as new-editor green (1px solid + diff-only hover). */
+  .review-changes__item-link--thanks-patrol-diff-only-shell.review-changes__item-link--thanks-patrol-signal-flag:hover:not(
+      .review-changes__item-link--revision-viewed
+    ),
+  .review-changes__thanks-patrol-cluster-shell--diff-only.review-changes__thanks-patrol-cluster-shell--signal-flag:hover:not(
+      .review-changes__item-link--revision-viewed
+    ) {
+    border-color: var(--border-color-progressive, #3056a9);
     border-width: 1px;
     margin: 0;
   }
@@ -298,6 +320,52 @@
   align-self: start;
 }
 
+.review-changes__thanks-patrol-top-row .review-changes__thanks-patrol-signal-badge {
+  float: none;
+  margin: 0;
+  justify-self: end;
+  align-self: start;
+}
+
+.review-changes__thanks-patrol-signal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-sizing: border-box;
+  padding: 2px 8px;
+  border-radius: 2px;
+  font-size: var(--font-size-x-small, 0.8125rem);
+  line-height: var(--line-height-x-small, 1.25);
+  font-weight: var(--font-weight-normal, 400);
+  color: #3c64b1;
+  background-color: #eaf2ff;
+}
+
+/*
+ * Card chrome for blue signal badge: mirrors `.review-changes__item-link--primary-unviewed-new-editor`
+ * (1px solid semantic border). Keep colored border only while the card is still “unopened” in feed chrome.
+ */
+.review-changes__item-link--thanks-patrol-signal-flag:not(.review-changes__item-link--revision-viewed),
+.review-changes__thanks-patrol-cluster-shell--signal-flag:not(.review-changes__item-link--revision-viewed) {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--border-color-progressive, #3056a9);
+}
+
+.review-changes__thanks-patrol-signal-badge-icon {
+  flex-shrink: 0;
+  color: inherit;
+}
+
+.review-changes__thanks-patrol-signal-badge-text {
+  white-space: nowrap;
+}
+
+.review-changes__item-link--revision-viewed .review-changes__thanks-patrol-signal-badge {
+  color: var(--color-base--subtle, #54595d);
+  background-color: var(--background-color-neutral-subtle, #f8f9fa);
+}
+
 .review-changes__thanks-patrol-new-editor-badge {
   display: inline-flex;
   align-items: center;
@@ -327,8 +395,12 @@
   text-decoration: none;
 }
 
-.review-changes__page-cell--thanks-patrol-compact .review-changes__thanks-patrol-headline .review-changes__thanks-patrol-user-link,
-.review-changes__page-cell--thanks-patrol-compact .review-changes__thanks-patrol-headline .review-changes__thanks-patrol-page-link {
+.review-changes__page-cell--thanks-patrol-compact
+  .review-changes__thanks-patrol-headline
+  .review-changes__thanks-patrol-user-link,
+.review-changes__page-cell--thanks-patrol-compact
+  .review-changes__thanks-patrol-headline
+  .review-changes__thanks-patrol-page-link {
   color: var(--color-base, #202122);
   font-weight: var(--font-weight-bold, 700);
 }
@@ -927,7 +999,8 @@
 }
 
 @media (max-width: 640px) {
-  .review-changes__thanks-patrol-cluster-shell--diff-only .review-changes__thanks-patrol-cluster-summary-row {
+  .review-changes__thanks-patrol-cluster-shell--diff-only
+    .review-changes__thanks-patrol-cluster-summary-row {
     pointer-events: auto;
   }
 }
@@ -958,24 +1031,28 @@
   margin-right: calc(-1 * var(--spacing-50, 8px));
   padding-left: var(--spacing-50, 8px);
   padding-right: var(--spacing-50, 8px);
-  width: calc(100% + 2 * var(--spacing-50, 8px));
+  width: calc(100% + 1 * var(--spacing-50, 8px));
   max-width: none;
 }
 
 .review-changes__thanks-patrol-summary-hit--revision-viewed .review-changes__summary-prefix,
-.review-changes__thanks-patrol-summary-hit--revision-viewed .review-changes__thanks-patrol-summary-led,
+.review-changes__thanks-patrol-summary-hit--revision-viewed
+  .review-changes__thanks-patrol-summary-led,
 .review-changes__thanks-patrol-summary-hit--revision-viewed .review-changes__comment {
   color: var(--color-base--subtle, #54595d);
 }
 
 .review-changes__thanks-patrol-cluster-summary-row--revision-viewed .review-changes__summary-prefix,
-.review-changes__thanks-patrol-cluster-summary-row--revision-viewed .review-changes__thanks-patrol-summary-led,
+.review-changes__thanks-patrol-cluster-summary-row--revision-viewed
+  .review-changes__thanks-patrol-summary-led,
 .review-changes__thanks-patrol-cluster-summary-row--revision-viewed .review-changes__comment {
   color: var(--color-base--subtle, #54595d);
 }
 
 @media (min-width: 641px) and (pointer: fine) {
-  .review-changes__thanks-patrol-summary-hit:hover:not(.review-changes__thanks-patrol-summary-hit--revision-viewed),
+  .review-changes__thanks-patrol-summary-hit:hover:not(
+      .review-changes__thanks-patrol-summary-hit--revision-viewed
+    ),
   .review-changes__thanks-patrol-single-diff-hit:hover:not(
       .review-changes__thanks-patrol-summary-hit--revision-viewed
     ) {
@@ -1018,7 +1095,9 @@
 
 /* Single summary column (no delta prefix): stretch to card inner width so hover aligns with “New editor” chip. */
 .review-changes__thanks-patrol-cluster-summaries
-  .review-changes__summary--thanks-patrol-second-line:has(> .review-changes__thanks-patrol-summary-hit:only-child)
+  .review-changes__summary--thanks-patrol-second-line:has(
+    > .review-changes__thanks-patrol-summary-hit:only-child
+  )
   > .review-changes__thanks-patrol-summary-hit {
   margin-left: calc(-1 * (4px + 0.125rem));
   margin-right: -6px;
@@ -1069,7 +1148,9 @@
   }
 
   .review-changes__thanks-patrol-cluster-summaries
-    .review-changes__summary--thanks-patrol-second-line:has(> .review-changes__thanks-patrol-summary-hit:only-child)
+    .review-changes__summary--thanks-patrol-second-line:has(
+      > .review-changes__thanks-patrol-summary-hit:only-child
+    )
     > .review-changes__thanks-patrol-summary-hit,
   .review-changes__thanks-patrol-cluster-summaries
     .review-changes__summary--thanks-patrol-second-line:not(
