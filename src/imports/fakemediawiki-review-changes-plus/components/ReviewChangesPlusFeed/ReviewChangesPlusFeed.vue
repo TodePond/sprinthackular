@@ -99,11 +99,22 @@
             <div
               class="review-changes__item-header"
               :class="{
-                'review-changes__item-header--has-primary-flag': !!getPrimaryFeedFlag(change),
+                'review-changes__item-header--has-primary-flag':
+                  !!getPrimaryFeedFlag(change) &&
+                  !(
+                    protowikiThanksPatrolCompactCard &&
+                    getPrimaryFeedFlag(change)?.tier === 'newEditor'
+                  ),
               }"
             >
               <CdxIcon
-                v-if="getPrimaryFeedFlag(change)"
+                v-if="
+                  getPrimaryFeedFlag(change) &&
+                  !(
+                    protowikiThanksPatrolCompactCard &&
+                    getPrimaryFeedFlag(change)?.tier === 'newEditor'
+                  )
+                "
                 :icon="primaryFlagCdxIcon(change)"
                 size="medium"
                 :class="['review-changes__primary-flag-icon', primaryFlagIconModifierClass(change)]"
@@ -116,7 +127,100 @@
                 class="review-changes__arrow-in-top-right"
                 aria-hidden="true"
               />
-              <span class="review-changes__page-cell">
+              <span
+                class="review-changes__page-cell"
+                :class="{
+                  'review-changes__page-cell--thanks-patrol-compact':
+                    protowikiThanksPatrolCompactCard,
+                }"
+              >
+                <template v-if="protowikiThanksPatrolCompactCard">
+                  <div class="review-changes__thanks-patrol-top-row">
+                    <!-- Badge before headline so float:right shares the first line (CSS float + block sibling order). -->
+                    <span
+                      v-if="getPrimaryFeedFlag(change)?.tier === 'newEditor'"
+                      class="review-changes__thanks-patrol-new-editor-badge"
+                      aria-hidden="true"
+                    >
+                      <Sprout
+                        class="review-changes__thanks-patrol-badge-sprout"
+                        :size="14"
+                        :stroke-width="2"
+                        aria-hidden="true"
+                      />
+                      <span class="review-changes__thanks-patrol-new-editor-badge-text"
+                        >New editor</span
+                      >
+                    </span>
+                    <span class="review-changes__thanks-patrol-headline">
+                      <a
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        :href="wiki.getUserUrl(change.user.name)"
+                        class="review-changes__user review-changes__thanks-patrol-user-link"
+                        @click.stop
+                        ><strong>{{ showUsernameAtPrefix ? '@' : '' }}{{ change.user.name }}</strong></a
+                      ><span class="review-changes__thanks-patrol-edited"> edited </span
+                      ><a
+                        v-if="change.pageName"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        :href="wiki.getPageUrl(change.pageName)"
+                        class="review-changes__thanks-patrol-page-link"
+                        @click.stop
+                        ><strong>{{ change.pageName }}</strong></a
+                      >
+                    </span>
+                  </div>
+                  <div
+                    class="review-changes__summary review-changes__summary--thanks-patrol-second-line"
+                  >
+                    <template v-if="showDelta">
+                      <span
+                        class="review-changes__summary-prefix"
+                        :class="wiki.getDeltaClass(change.delta ?? 0, false)"
+                        >{{ formatDelta(change.delta) }}</span
+                      >
+                      <span
+                        v-if="!!(change?.summary?.comment || change?.comment) || showEmptyEditSummary"
+                        class="review-changes__summary-sep"
+                        aria-hidden="true"
+                        >&nbsp;·&nbsp;</span
+                      ></template
+                    ><template v-if="change?.summary?.comment"
+                      ><span
+                        v-if="showDelta"
+                        :class="[
+                          'review-changes__comment',
+                          {
+                            'review-changes__comment--no-cutout': !showSummaryCutout,
+                          },
+                        ]"
+                        v-html="change.summary.comment"
+                      ></span
+                      ><span
+                        v-else
+                        :class="[
+                          'review-changes__comment',
+                          {
+                            'review-changes__comment--no-cutout': !showSummaryCutout,
+                          },
+                        ]"
+                        v-html="change.summary.comment"
+                      ></span></template
+                    ><span
+                      v-else-if="change?.comment"
+                      :class="[
+                        'review-changes__comment',
+                        {
+                          'review-changes__comment--no-cutout': !showSummaryCutout,
+                        },
+                      ]"
+                      >{{ change.comment }}</span
+                    >
+                  </div>
+                </template>
+                <template v-else>
                 <template v-if="unifiedTitle">
                   <FeedItemTitle
                     :page-name="change.pageName ?? ''"
@@ -355,9 +459,14 @@
                     >{{ change.comment }}</span
                   >
                 </div>
+                </template>
               </span>
               <time
-                v-if="!unifiedTitle && timestampPosition === 'topRight'"
+                v-if="
+                  !unifiedTitle &&
+                  timestampPosition === 'topRight' &&
+                  !protowikiThanksPatrolCompactCard
+                "
                 :datetime="change.timestamp"
                 class="review-changes__time"
               >
@@ -431,7 +540,8 @@
                   (showOnWatchlistLabel && change.pageName && isPageOnWatchlist(change.pageName)) ||
                   (showEditCheckOtherFlag && hasReferenceNeed(change)) ||
                   (showToneCheckFlag && hasToneCheckFlag(change)) ||
-                  getPrimaryFeedFlag(change)?.tier === 'newEditor'
+                  (getPrimaryFeedFlag(change)?.tier === 'newEditor' &&
+                    !protowikiThanksPatrolCompactCard)
                 "
                 class="review-changes__flags-actions-row"
                 :class="{
@@ -452,7 +562,8 @@
                       isPageOnWatchlist(change.pageName)) ||
                     (showEditCheckOtherFlag && hasReferenceNeed(change)) ||
                     (showToneCheckFlag && hasToneCheckFlag(change)) ||
-                    getPrimaryFeedFlag(change)?.tier === 'newEditor'
+                    (getPrimaryFeedFlag(change)?.tier === 'newEditor' &&
+                      !protowikiThanksPatrolCompactCard)
                   "
                   class="review-changes__flags-container"
                   :class="{
@@ -547,7 +658,10 @@
                     >
                   </div>
                   <div
-                    v-if="getPrimaryFeedFlag(change)?.tier === 'newEditor'"
+                    v-if="
+                      getPrimaryFeedFlag(change)?.tier === 'newEditor' &&
+                      !protowikiThanksPatrolCompactCard
+                    "
                     class="review-changes__new-editor-notice"
                   >
                     <span class="review-changes__new-editor-notice-text">
@@ -664,6 +778,7 @@ import {
   setRevisionsCallback,
   useReviewChangesPlusProgress,
 } from '../../useReviewChangesPlusProgress'
+import Sprout from 'lucide-vue-next/dist/esm/icons/sprout.js'
 import { CdxButton, CdxIcon, CdxPopover, CdxProgressBar } from '@wikimedia/codex'
 import {
   type Icon,
@@ -821,6 +936,11 @@ const props = withDefaults(
     protowikiShowMoreTo?: string | null
     /** Cap visible feed items (newest first); omit for no limit. */
     maxDisplayRevisions?: number
+    /**
+     * ProtoWiki thanks patrol: compact “**User** edited **Page**” card, sprout “New editor” pill, no timestamp/user icon/footer notice.
+     * Figma’s extra badge variants (article quality, good faith, …) need future signal wiring — only `thanksPatrolNewEditor` is supported here.
+     */
+    protowikiThanksPatrolCompactCard?: boolean
   }>(),
   {
     showRevertRiskFlags: false,
@@ -869,6 +989,7 @@ const props = withDefaults(
     protowikiExternalLoading: false,
     protowikiShowMoreTo: undefined,
     maxDisplayRevisions: undefined,
+    protowikiThanksPatrolCompactCard: false,
   },
 )
 
@@ -976,7 +1097,7 @@ function hasToneCheckFlag(change: FWRevision): boolean {
 /** Whether any flag is shown for this change (revert risk, reverted, recommendation, edit check, tone check, on watchlist). */
 function hasAnyFlag(change: FWRevision): boolean {
   const thanksExtra = change as FWRevision & { thanksPatrolNewEditor?: boolean }
-  return (
+  const nonThanksPatrolNewEditorFlags =
     (props.showRevertRiskFlags && !!getRevertRiskNotice(change)) ||
     (props.showRevertedFlag && isReverted(change)) ||
     (props.showRecommendationFlags &&
@@ -984,9 +1105,11 @@ function hasAnyFlag(change: FWRevision): boolean {
       getRecommendationSourcePageNames(change as RevisionWithSource).length > 0) ||
     (props.showOnWatchlistLabel && !!change.pageName && isPageOnWatchlist(change.pageName)) ||
     (props.showEditCheckOtherFlag && hasReferenceNeed(change)) ||
-    (props.showToneCheckFlag && hasToneCheckFlag(change)) ||
-    Boolean(thanksExtra.thanksPatrolNewEditor)
-  )
+    (props.showToneCheckFlag && hasToneCheckFlag(change))
+  if (props.protowikiThanksPatrolCompactCard) {
+    return nonThanksPatrolNewEditorFlags
+  }
+  return nonThanksPatrolNewEditorFlags || Boolean(thanksExtra.thanksPatrolNewEditor)
 }
 
 /** Whether there is summary content (comment, delta, or empty-edit placeholder) above the flags. */

@@ -16,5 +16,8 @@ export const thanksModuleFeedProps = {
   /** Patrol list is built from the user’s own contribs — no Wikidata short descriptions beside titles. */
   showShortDescription: false,
   showShortDescriptionSeparator: false,
+  /** Figma “After” card: **User** edited **Page**, sprout badge, no footer / user icon / timestamp. */
+  protowikiThanksPatrolCompactCard: true,
+  /** Four blue badge variants in Figma (article quality, good faith, reference, low risk) await patrol signals; not in this feed yet. */
   source: 'recentChanges' as const,
 }

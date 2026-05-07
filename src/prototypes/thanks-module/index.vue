@@ -208,7 +208,10 @@ function onPatrolHeaderRefresh(): void {
   .thanks-module-page :deep(.review-changes__feed) {
     padding-left: 0;
     padding-right: 0;
-    padding-bottom: 0;
+    /* Neutral strip below last card; keep thin — full gutter is the list background. */
+    padding-bottom: var(--spacing-25, 4px);
+    /* Avoid stacking with footer / chrome top rule (was reading as a double border). */
+    border-bottom: none;
   }
 
   .thanks-module-page :deep(.review-changes__title-row) {

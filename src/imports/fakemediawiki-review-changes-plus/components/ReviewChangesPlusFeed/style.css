@@ -223,6 +223,64 @@
   padding-right: 2.25rem;
 }
 
+/* Thanks patrol compact: badge first in DOM + float:right so it shares the first line with the headline;
+   headline is block-level so following lines clear the float width. Summary clears below (see .review-changes__summary--thanks-patrol-second-line). */
+.review-changes__thanks-patrol-top-row {
+  display: flow-root;
+  width: 100%;
+  min-width: 0;
+}
+
+.review-changes__thanks-patrol-top-row .review-changes__thanks-patrol-headline {
+  display: block;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.review-changes__thanks-patrol-top-row .review-changes__thanks-patrol-new-editor-badge {
+  float: right;
+  margin-left: 8px;
+  /* margin: 0 0 var(--spacing-25, 4px) var(--spacing-50, 8px); */
+}
+
+.review-changes__thanks-patrol-new-editor-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-sizing: border-box;
+  padding: 2px 8px;
+  border-radius: 2px;
+  font-size: var(--font-size-x-small, 0.8125rem);
+  line-height: var(--line-height-x-small, 1.25);
+  font-weight: var(--font-weight-normal, 400);
+  color: var(--color-success, #0e9f6e);
+  background-color: var(--background-color-success-subtle, #dff2eb);
+}
+
+.review-changes__item-link--revision-viewed .review-changes__thanks-patrol-new-editor-badge {
+  color: var(--color-base--subtle, #54595d);
+  background-color: var(--background-color-neutral-subtle, #f8f9fa);
+}
+
+.review-changes__thanks-patrol-new-editor-badge-text {
+  white-space: nowrap;
+}
+
+.review-changes__thanks-patrol-page-link {
+  display: inline;
+  color: var(--color-base--subtle, #54595d);
+  text-decoration: none;
+}
+
+.review-changes__thanks-patrol-page-link:hover {
+  color: var(--color-progressive--hover, #3056a9);
+  text-decoration: underline;
+}
+
+.review-changes__thanks-patrol-page-link strong {
+  font-weight: var(--font-weight-bold, 700);
+}
+
 .review-changes__primary-flag-icon {
   position: absolute;
   top: 16px;
@@ -324,7 +382,17 @@
 .review-changes__item-link--primary-unviewed-new-editor {
   border-width: 1px;
   border-style: solid;
-  border-color: var(--color-success, #0e9f6e);
+  border-color: var(--border-color-success, #099979);
+}
+
+/* Thanks patrol compact: Lucide Sprout + label in header pill */
+.review-changes__thanks-patrol-badge-sprout {
+  flex-shrink: 0;
+  color: currentColor;
+}
+
+.review-changes__thanks-patrol-badge-sprout :deep(svg) {
+  display: block;
 }
 
 .review-changes__new-editor-notice {
@@ -637,11 +705,23 @@
 .review-changes__page-cell {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   flex-grow: 1;
   min-width: 0;
   overflow: hidden;
 }
+
+.review-changes__page-cell--thanks-patrol-compact
+  .review-changes__summary--thanks-patrol-second-line {
+  clear: both;
+  width: 100%;
+  max-width: 100%;
+}
+
+.review-changes__page-cell--thanks-patrol-compact {
+  overflow: visible;
+}
+
 /* Separate layout (Review Changes module): inline flow, timestamp as sibling */
 .review-changes__page-cell-heading--separate {
   display: inline;
@@ -724,6 +804,10 @@
   .review-changes__user {
     color: var(--color-emphasized);
     font-weight: bold;
+  }
+
+  .review-changes__thanks-patrol-page-link {
+    color: var(--color-emphasized);
   }
 
   .review-changes__user-row .cdx-icon {
