@@ -11,7 +11,7 @@ import { removeHeartConfettiLayers, spawnHeartConfettiFromButton } from '@/lib/p
 
 definePage({
   meta: {
-    title: 'Thanks patrol',
+    title: 'Thank collaborators',
     description:
       'Edits that could do with some thanks.',
   },

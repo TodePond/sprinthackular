@@ -6,7 +6,7 @@ import { reviewChangesPlusFeedProps } from '@/imports/fakemediawiki-review-chang
  */
 export const thanksModuleFeedProps = {
   ...reviewChangesPlusFeedProps,
-  title: 'Thanks patrol',
+  title: 'Thank collaborators',
   requireRecentChangesMeetRevertRiskThresholds: false,
   showRevertRiskFlags: false,
   showRecommendationFlags: false,

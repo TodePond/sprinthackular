@@ -122,7 +122,7 @@ function onPatrolHeaderRefresh(): void {
               >
                 WikiLove
               </a>
-              to show your appreciation to Wikipedia editors.
+              to your collaborators.
             </p>
           </template>
         </ReviewChangesPlusFeed>
