@@ -131,9 +131,7 @@ export function useProtoThanksPatrolRevisions(options: {
         pageName: r.articleTitle,
         summary: {
           comment: stripLinksFromHtml(
-            r.summaryHtml && r.summaryHtml.trim()
-              ? r.summaryHtml
-              : '<span>(no summary)</span>',
+            r.summaryHtml && r.summaryHtml.trim() ? r.summaryHtml : '<span>(no summary)</span>',
           ),
         },
         thanksPatrolNewEditor: isNewEditorByEditcount(r.patrolSubjectEditorEditcount),
@@ -314,11 +312,13 @@ export function useProtoThanksPatrolRevisions(options: {
     })
   }
 
-  function firstQueryPage(data: any): {
-    title?: string
-    missing?: boolean | string
-    revisions?: WikiRevisionRaw[]
-  } | undefined {
+  function firstQueryPage(data: any):
+    | {
+        title?: string
+        missing?: boolean | string
+        revisions?: WikiRevisionRaw[]
+      }
+    | undefined {
     const pages = data?.query?.pages
     if (pages == null) return undefined
     const list = Array.isArray(pages) ? pages : Object.values(pages as Record<string, unknown>)
@@ -342,7 +342,9 @@ export function useProtoThanksPatrolRevisions(options: {
     return map
   }
 
-  function normalizeRevision(r: WikiRevisionRaw): Omit<ThanksPatrolRevisionRow, 'articleTitle'> | null {
+  function normalizeRevision(
+    r: WikiRevisionRaw,
+  ): Omit<ThanksPatrolRevisionRow, 'articleTitle'> | null {
     const revid = r.revid
     if (revid == null) return null
     return {
@@ -409,7 +411,10 @@ export function useProtoThanksPatrolRevisions(options: {
     return titles
   }
 
-  async function fetchFilteredRevisions(): Promise<{ title: string; list: ThanksPatrolRevisionRow[] }> {
+  async function fetchFilteredRevisions(): Promise<{
+    title: string
+    list: ThanksPatrolRevisionRow[]
+  }> {
     const user = normalizedPatrolUsername.value
     const activePageTitles = await fetchDistinctPatrolTitles(user)
 
