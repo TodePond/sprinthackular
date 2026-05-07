@@ -52,69 +52,19 @@ const contributionsUrl = computed(() => {
   return `${wikiOriginBase()}/wiki/Special:Contributions/${encodeURIComponent(u)}`
 })
 
-/** Count usercontribs with timestamp ≥ first instant of current UTC month (newest-first scan). */
-async function fetchEditsThisMonthCount(username: string): Promise<{ count: number; truncated: boolean }> {
-  const monthStartIso = new Date(
-    Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1, 0, 0, 0),
-  ).toISOString()
-
-  let count = 0
-  let uccontinue: string | undefined
-  const maxBatches = 40
-  let truncated = false
-
-  for (let batch = 0; batch < maxBatches; batch++) {
-    const params: Record<string, unknown> = {
-      list: 'usercontribs',
-      ucuser: username,
-      uclimit: 'max',
-      ucprop: 'timestamp',
-    }
-    if (uccontinue) params.uccontinue = uccontinue
-
-    const data = (await wiki.request({
-      api: 'action',
-      params: {
-        action: 'query',
-        ...params,
-      },
-    })) as {
-      error?: { code?: string; info?: string }
-      continue?: { uccontinue?: string }
-      query?: { usercontribs?: Array<{ timestamp?: string }> }
-    }
-
-    const err = data?.error
-    if (err) {
-      const code = err.code ?? 'unknown'
-      const info = err.info ?? JSON.stringify(err)
-      throw new Error(`${code}: ${info}`)
-    }
-
-    const contribs = data?.query?.usercontribs ?? []
-    for (const c of contribs) {
-      const ts = c.timestamp
-      if (ts == null || ts === '') continue
-      if (ts < monthStartIso) {
-        return { count, truncated: false }
-      }
-      count++
-    }
-
-    const next = data?.continue?.uccontinue
-    if (!next) break
-    if (batch === maxBatches - 1) {
-      truncated = true
-      break
-    }
-    uccontinue = next
-  }
-  return { count, truncated }
+/** Lifetime edit count from Action API `list=users` (`usprop=editcount`). */
+async function fetchTotalEditCount(username: string): Promise<number | null> {
+  const name = username.trim()
+  const record = await wiki.getUsersInfo([name])
+  const u = record[name]
+  if (!u || u.invalid || u.missing) return null
+  const ec = u.editcount
+  if (typeof ec !== 'number' || Number.isNaN(ec)) return null
+  return ec
 }
 
-const editsThisMonthCount = ref<number | null>(null)
-const editsThisMonthTruncated = ref(false)
-const editsMonthLoading = ref(false)
+const totalEditCount = ref<number | null>(null)
+const totalEditsLoading = ref(false)
 
 const thanksLogUrl = computed(() => {
   const base = wiki.base.endsWith('/') ? wiki.base : `${wiki.base}/`
@@ -129,7 +79,9 @@ const thanksCountLoading = ref(false)
 
 const THANKS_LOG_COUNT_MAX_BATCHES = 50
 
-async function fetchThanksGivenCount(username: string): Promise<{ count: number; truncated: boolean }> {
+async function fetchThanksGivenCount(
+  username: string,
+): Promise<{ count: number; truncated: boolean }> {
   let total = 0
   let lecontinue: string | undefined
   let truncated = false
@@ -167,52 +119,111 @@ async function fetchThanksGivenCount(username: string): Promise<{ count: number;
   return { count: total, truncated }
 }
 
-watch(
-  normalizedPatrolUsername,
-  async (username) => {
-    thanksCountLoading.value = true
-    editsMonthLoading.value = true
-    thanksGivenCount.value = null
-    thanksGivenTruncated.value = false
-    editsThisMonthCount.value = null
-    editsThisMonthTruncated.value = false
+/** Persisted Impact metrics; keyed by patrol username (same scope as thanks-flow username). */
+const IMPACT_CACHE_VERSION = 1 as const
+const IMPACT_STORAGE_KEY = 'protowiki-thanks-dashboard-impact'
 
+interface ImpactCachePayload {
+  v: typeof IMPACT_CACHE_VERSION
+  username: string
+  thanksGivenCount: number | null
+  thanksGivenTruncated: boolean
+  totalEditCount: number | null
+}
+
+function loadImpactFromStorage(username: string): void {
+  thanksGivenCount.value = null
+  thanksGivenTruncated.value = false
+  totalEditCount.value = null
+  try {
+    const raw = localStorage.getItem(IMPACT_STORAGE_KEY)
+    if (!raw) return
+    const parsed = JSON.parse(raw) as ImpactCachePayload
+    if (parsed.v !== IMPACT_CACHE_VERSION || parsed.username !== username) return
+    thanksGivenCount.value = parsed.thanksGivenCount
+    thanksGivenTruncated.value = parsed.thanksGivenTruncated
+    totalEditCount.value = parsed.totalEditCount
+  } catch {
+    /* ignore */
+  }
+}
+
+function saveImpactToStorage(username: string): void {
+  try {
+    const payload: ImpactCachePayload = {
+      v: IMPACT_CACHE_VERSION,
+      username,
+      thanksGivenCount: thanksGivenCount.value,
+      thanksGivenTruncated: thanksGivenTruncated.value,
+      totalEditCount: totalEditCount.value,
+    }
+    localStorage.setItem(IMPACT_STORAGE_KEY, JSON.stringify(payload))
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Fetches thanks + total edits from the API and updates cache. Call from Refresh only. */
+async function refreshImpactMetrics(): Promise<void> {
+  const username = normalizedPatrolUsername.value
+  const prevThanks = thanksGivenCount.value
+  const prevTrunc = thanksGivenTruncated.value
+  const prevEdits = totalEditCount.value
+
+  thanksCountLoading.value = true
+  totalEditsLoading.value = true
+  try {
     const [thanksOutcome, editsOutcome] = await Promise.allSettled([
       fetchThanksGivenCount(username),
-      fetchEditsThisMonthCount(username),
+      fetchTotalEditCount(username),
     ])
 
     if (thanksOutcome.status === 'fulfilled') {
       thanksGivenCount.value = thanksOutcome.value.count
       thanksGivenTruncated.value = thanksOutcome.value.truncated
     } else {
-      thanksGivenCount.value = null
+      thanksGivenCount.value = prevThanks
+      thanksGivenTruncated.value = prevTrunc
     }
-    thanksCountLoading.value = false
 
     if (editsOutcome.status === 'fulfilled') {
-      editsThisMonthCount.value = editsOutcome.value.count
-      editsThisMonthTruncated.value = editsOutcome.value.truncated
+      totalEditCount.value = editsOutcome.value
     } else {
-      editsThisMonthCount.value = null
+      totalEditCount.value = prevEdits
     }
-    editsMonthLoading.value = false
+
+    if (thanksOutcome.status === 'fulfilled' && editsOutcome.status === 'fulfilled') {
+      saveImpactToStorage(username)
+    }
+  } finally {
+    thanksCountLoading.value = false
+    totalEditsLoading.value = false
+  }
+}
+
+watch(
+  normalizedPatrolUsername,
+  (username) => {
+    loadImpactFromStorage(username)
   },
   { immediate: true },
 )
 
+async function onPatrolFeedRefreshRequest(): Promise<void> {
+  await Promise.allSettled([refresh(), refreshImpactMetrics()])
+}
+
 const thanksGivenDisplay = computed(() => {
-  if (thanksCountLoading.value) return '…'
+  if (thanksCountLoading.value && thanksGivenCount.value == null) return '…'
   if (thanksGivenCount.value == null) return '—'
   const n = thanksGivenCount.value.toLocaleString()
   return thanksGivenTruncated.value ? `${n}+` : n
 })
 
-const editsThisMonthDisplay = computed(() => {
-  if (editsMonthLoading.value) return '…'
-  if (editsThisMonthCount.value == null) return '—'
-  const n = editsThisMonthCount.value.toLocaleString()
-  return editsThisMonthTruncated.value ? `${n}+` : n
+const totalEditsDisplay = computed(() => {
+  if (totalEditsLoading.value && totalEditCount.value == null) return '…'
+  if (totalEditCount.value == null) return '—'
+  return totalEditCount.value.toLocaleString()
 })
 
 function joinOxfordList(names: string[]): string {
@@ -329,7 +340,8 @@ const mobileThanksPatrolPreviewEntries = computed((): ThanksPatrolPreviewEntry[]
                   <span
                     v-if="entry.kind === 'message'"
                     class="mobile-card__content-text thanks-dashboard__patrol-preview-row"
-                  >{{ entry.text }}</span>
+                    >{{ entry.text }}</span
+                  >
                   <div
                     v-else
                     class="thanks-dashboard__patrol-preview-row thanks-dashboard__patrol-preview-row--with-icon"
@@ -342,7 +354,10 @@ const mobileThanksPatrolPreviewEntries = computed((): ThanksPatrolPreviewEntry[]
                     />
                     <span class="mobile-card__content-text thanks-dashboard__patrol-preview-text">
                       {{ entry.editorsText }} edited
-                      <strong class="thanks-dashboard__patrol-preview-page">{{ entry.pageTitle }}</strong>.
+                      <strong class="thanks-dashboard__patrol-preview-page">{{
+                        entry.pageTitle
+                      }}</strong
+                      >.
                     </span>
                   </div>
                 </template>
@@ -373,9 +388,9 @@ const mobileThanksPatrolPreviewEntries = computed((): ThanksPatrolPreviewEntry[]
                   target="_blank"
                   rel="noopener noreferrer"
                   class="mobile-card__stat-link"
-                  >{{ editsThisMonthDisplay }}</a
+                  >{{ totalEditsDisplay }}</a
                 >
-                <span>Edits this month.</span>
+                <span>Edits completed.</span>
               </div>
             </div>
           </section>
@@ -404,7 +419,7 @@ const mobileThanksPatrolPreviewEntries = computed((): ThanksPatrolPreviewEntry[]
             protowiki-show-more-to="/thanks-module"
             :max-display-revisions="6"
             class="thanks-dashboard__feed"
-            @protowiki-request-refresh="refresh"
+            @protowiki-request-refresh="onPatrolFeedRefreshRequest"
           />
 
           <aside class="dashboard-sidebar">
@@ -433,10 +448,10 @@ const mobileThanksPatrolPreviewEntries = computed((): ThanksPatrolPreviewEntry[]
                       target="_blank"
                       rel="noopener noreferrer"
                       class="your-impact__value your-impact__value-link"
-                      >{{ editsThisMonthDisplay }}</a
+                      >{{ totalEditsDisplay }}</a
                     >
                   </div>
-                  <span class="your-impact__label">Edits this month</span>
+                  <span class="your-impact__label">Edits completed</span>
                 </div>
               </div>
             </section>

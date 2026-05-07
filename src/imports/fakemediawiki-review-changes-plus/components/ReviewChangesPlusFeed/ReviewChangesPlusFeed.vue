@@ -70,32 +70,51 @@
             aria-hidden="true"
           />
           <component
-            :is="change.pageName ? 'a' : 'div'"
-            :href="change.pageName ? wiki.getRevisionUrl(change.id, change.pageName) : undefined"
-            :target="change.pageName ? '_blank' : undefined"
-            :rel="change.pageName ? 'noopener noreferrer' : undefined"
+            :is="singleThanksOuterTag(change)"
+            :href="singleThanksOuterHref(change)"
+            :target="thanksPatrolDiffOnlyInteraction ? undefined : change.pageName ? '_blank' : undefined"
+            :rel="thanksPatrolDiffOnlyInteraction ? undefined : change.pageName ? 'noopener noreferrer' : undefined"
             class="review-changes__item-link"
             :class="{
-              'review-changes__item-link--not-link': !change.pageName,
+              'review-changes__item-link--not-link': !change.pageName || thanksPatrolDiffOnlyInteraction,
+              'review-changes__item-link--thanks-patrol-diff-only-shell': thanksPatrolDiffOnlyInteraction,
               'review-changes__item-link--revision-viewed': isRevisionViewed(change),
-              'review-changes__item-link--unviewed': highlightUnviewed && !isRevisionViewed(change),
+              'review-changes__item-link--unviewed':
+                highlightUnviewed &&
+                !isRevisionViewed(change) &&
+                !thanksPatrolDiffOnlyInteraction,
               'review-changes__item-link--last-clicked':
                 lastClickedHighlight && change.id === lastClickedRevisionId,
               'review-changes__item-link--primary-unviewed-tone':
-                !isRevisionViewed(change) && getPrimaryFeedFlag(change)?.tier === 'toneReference',
+                !thanksPatrolDiffOnlyInteraction &&
+                !isRevisionViewed(change) &&
+                getPrimaryFeedFlag(change)?.tier === 'toneReference',
               'review-changes__item-link--primary-unviewed-revert':
-                !isRevisionViewed(change) && isPrimaryRevertVeryHigh(change),
+                !thanksPatrolDiffOnlyInteraction &&
+                !isRevisionViewed(change) &&
+                isPrimaryRevertVeryHigh(change),
               'review-changes__item-link--primary-unviewed-revert-warn':
-                !isRevisionViewed(change) && isPrimaryRevertHigh(change),
+                !thanksPatrolDiffOnlyInteraction &&
+                !isRevisionViewed(change) &&
+                isPrimaryRevertHigh(change),
               'review-changes__item-link--primary-unviewed-recommendation':
-                !isRevisionViewed(change) && getPrimaryFeedFlag(change)?.tier === 'recommendation',
+                !thanksPatrolDiffOnlyInteraction &&
+                !isRevisionViewed(change) &&
+                getPrimaryFeedFlag(change)?.tier === 'recommendation',
               'review-changes__item-link--primary-unviewed-new-editor':
-                !isRevisionViewed(change) && getPrimaryFeedFlag(change)?.tier === 'newEditor',
+                !isRevisionViewed(change) &&
+                getPrimaryFeedFlag(change)?.tier === 'newEditor',
             }"
-            :aria-label="change.pageName ? `Open diff for ${change.pageName ?? 'page'}` : undefined"
-            @click="change.pageName && markRevisionAsViewed(change)"
-            @pointerdown.capture="onCardPointerDown"
-            @mousedown.capture="onCardPointerDown"
+            :aria-label="
+              thanksPatrolDiffOnlyInteraction || !change.pageName
+                ? undefined
+                : `Open diff for ${change.pageName ?? 'page'}`
+            "
+            @click="
+              !thanksPatrolDiffOnlyInteraction && change.pageName && markRevisionAsViewed(change)
+            "
+            @pointerdown.capture="onRevisionShellPointerDown"
+            @mousedown.capture="onRevisionShellMouseDown"
           >
             <div
               class="review-changes__item-header"
@@ -177,8 +196,40 @@
                       >
                     </span>
                   </div>
-                  <div
+                  <component
+                    :is="thanksPatrolDiffOnlyInteraction && change.pageName ? 'a' : 'div'"
                     class="review-changes__summary review-changes__summary--thanks-patrol-second-line"
+                    :class="{
+                      'review-changes__thanks-patrol-summary-hit':
+                        thanksPatrolDiffOnlyInteraction && change.pageName,
+                      'review-changes__thanks-patrol-summary-hit--revision-viewed':
+                        thanksPatrolDiffOnlyInteraction &&
+                        change.pageName &&
+                        isRevisionViewed(change),
+                      'review-changes__thanks-patrol-single-diff-hit':
+                        thanksPatrolDiffOnlyInteraction && change.pageName,
+                    }"
+                    :href="
+                      thanksPatrolDiffOnlyInteraction && change.pageName
+                        ? wiki.getRevisionUrl(change.id, change.pageName)
+                        : undefined
+                    "
+                    :target="thanksPatrolDiffOnlyInteraction && change.pageName ? '_blank' : undefined"
+                    :rel="
+                      thanksPatrolDiffOnlyInteraction && change.pageName
+                        ? 'noopener noreferrer'
+                        : undefined
+                    "
+                    :aria-label="
+                      thanksPatrolDiffOnlyInteraction && change.pageName
+                        ? `Open diff for ${change.pageName ?? 'page'}`
+                        : undefined
+                    "
+                    @click="
+                      thanksPatrolDiffOnlyInteraction &&
+                        change.pageName &&
+                        markRevisionAsViewed(change)
+                    "
                   >
                     <template v-if="showDelta">
                       <span
@@ -237,7 +288,7 @@
                         >{{ change.comment }}</span
                       ></span
                     >
-                  </div>
+                  </component>
                 </template>
                 <template v-else>
                 <template v-if="unifiedTitle">
@@ -794,38 +845,53 @@
               role="group"
               class="review-changes__item-link review-changes__item-link--thanks-patrol-cluster review-changes__thanks-patrol-cluster-shell"
               :class="{
-                'review-changes__item-link--not-link': !clusterHeadRevision(feedItem.cluster).pageName,
-                'review-changes__item-link--revision-viewed': isRevisionViewed(
-                  clusterHeadRevision(feedItem.cluster),
-                ),
+                'review-changes__thanks-patrol-cluster-shell--diff-only': thanksPatrolDiffOnlyInteraction,
+                'review-changes__item-link--not-link':
+                  !clusterHeadRevision(feedItem.cluster).pageName ||
+                  thanksPatrolDiffOnlyInteraction,
+                'review-changes__item-link--revision-viewed':
+                  thanksPatrolDiffOnlyInteraction
+                    ? clusterAllViewed(feedItem.cluster)
+                    : clusterHasAnyViewed(feedItem.cluster) && !thanksPatrolDiffOnlyInteraction,
                 'review-changes__item-link--unviewed':
-                  highlightUnviewed && clusterHasUnviewed(feedItem.cluster),
+                  highlightUnviewed &&
+                  clusterHasUnviewed(feedItem.cluster) &&
+                  !thanksPatrolDiffOnlyInteraction,
                 'review-changes__item-link--last-clicked':
                   lastClickedHighlight && clusterHasLastClicked(feedItem.cluster),
                 'review-changes__item-link--primary-unviewed-tone':
                   clusterHasUnviewed(feedItem.cluster) &&
+                  !thanksPatrolDiffOnlyInteraction &&
                   getPrimaryFeedFlag(clusterChromeRevision(feedItem.cluster))?.tier === 'toneReference',
                 'review-changes__item-link--primary-unviewed-revert':
                   clusterHasUnviewed(feedItem.cluster) &&
+                  !thanksPatrolDiffOnlyInteraction &&
                   isPrimaryRevertVeryHigh(clusterChromeRevision(feedItem.cluster)),
                 'review-changes__item-link--primary-unviewed-revert-warn':
                   clusterHasUnviewed(feedItem.cluster) &&
+                  !thanksPatrolDiffOnlyInteraction &&
                   isPrimaryRevertHigh(clusterChromeRevision(feedItem.cluster)),
                 'review-changes__item-link--primary-unviewed-recommendation':
                   clusterHasUnviewed(feedItem.cluster) &&
+                  !thanksPatrolDiffOnlyInteraction &&
                   getPrimaryFeedFlag(clusterChromeRevision(feedItem.cluster))?.tier === 'recommendation',
                 'review-changes__item-link--primary-unviewed-new-editor':
                   clusterHasUnviewed(feedItem.cluster) &&
                   getPrimaryFeedFlag(clusterChromeRevision(feedItem.cluster))?.tier === 'newEditor',
               }"
               :aria-label="
-                clusterHeadRevision(feedItem.cluster).pageName
-                  ? `Open latest diff (${feedItem.cluster.revisions.length} ${feedItem.cluster.revisions.length === 1 ? 'edit' : 'edits'} on ${clusterHeadRevision(feedItem.cluster).pageName})`
-                  : `Open latest diff (${feedItem.cluster.revisions.length} edits)`
+                thanksPatrolDiffOnlyInteraction
+                  ? undefined
+                  : clusterHeadRevision(feedItem.cluster).pageName
+                    ? `Open latest diff (${feedItem.cluster.revisions.length} ${feedItem.cluster.revisions.length === 1 ? 'edit' : 'edits'} on ${clusterHeadRevision(feedItem.cluster).pageName})`
+                    : `Open latest diff (${feedItem.cluster.revisions.length} edits)`
               "
             >
               <a
-                v-if="clusterHeadRevision(feedItem.cluster).pageName"
+                v-if="
+                  clusterHeadRevision(feedItem.cluster).pageName &&
+                  !thanksPatrolDiffOnlyInteraction
+                "
                 class="review-changes__thanks-patrol-cluster-hit"
                 :href="
                   wiki.getRevisionUrl(
@@ -894,9 +960,11 @@
                       ><span
                         class="review-changes__thanks-patrol-edited"
                         :class="{
-                          'review-changes__thanks-patrol-edited--visited': isRevisionViewed(
-                            clusterHeadRevision(feedItem.cluster),
-                          ),
+                          'review-changes__thanks-patrol-edited--visited':
+                            (thanksPatrolDiffOnlyInteraction &&
+                              clusterAllViewed(feedItem.cluster)) ||
+                            (!thanksPatrolDiffOnlyInteraction &&
+                              clusterHasAnyViewed(feedItem.cluster)),
                         }"
                         > edited </span
                       ><a
@@ -930,9 +998,37 @@
                       v-for="subChange in feedItem.cluster.revisions"
                       :key="subChange.id"
                       class="review-changes__thanks-patrol-cluster-summary-row"
+                      :class="{
+                        'review-changes__thanks-patrol-cluster-summary-row--revision-viewed':
+                          thanksPatrolDiffOnlyInteraction && isRevisionViewed(subChange),
+                      }"
                     >
-                      <div
+                      <component
+                        v-if="thanksPatrolDiffOnlyInteraction"
+                        :is="subChange.pageName ? 'a' : 'div'"
                         class="review-changes__summary review-changes__summary--thanks-patrol-second-line"
+                        :class="{
+                          'review-changes__thanks-patrol-summary-hit': !!subChange.pageName,
+                          'review-changes__thanks-patrol-summary-hit--revision-viewed':
+                            !!subChange.pageName && isRevisionViewed(subChange),
+                        }"
+                        :href="
+                          subChange.pageName
+                            ? wiki.getRevisionUrl(subChange.id, subChange.pageName)
+                            : undefined
+                        "
+                        :target="subChange.pageName ? '_blank' : undefined"
+                        :rel="subChange.pageName ? 'noopener noreferrer' : undefined"
+                        :aria-label="
+                          subChange.pageName
+                            ? `Open diff for ${subChange.pageName}`
+                            : undefined
+                        "
+                        @click="
+                          thanksPatrolDiffOnlyInteraction &&
+                            subChange.pageName &&
+                            markRevisionAsViewed(subChange)
+                        "
                       >
                         <template v-if="showDelta">
                           <span
@@ -957,7 +1053,7 @@
                             size="x-small"
                             :class="[
                               'review-changes__thanks-patrol-summary-icon',
-                              isRevisionViewed(clusterHeadRevision(feedItem.cluster))
+                              isRevisionViewed(subChange)
                                 ? 'review-changes__thanks-patrol-summary-icon--subtle'
                                 : 'review-changes__thanks-patrol-summary-icon--emphasized',
                             ]"
@@ -994,6 +1090,84 @@
                             >{{ subChange.comment }}</span
                           ></span
                         >
+                      </component>
+                      <div
+                        v-else
+                        class="review-changes__summary review-changes__summary--thanks-patrol-second-line"
+                      >
+                        <template v-if="showDelta">
+                          <span
+                            class="review-changes__summary-prefix"
+                            :class="wiki.getDeltaClass(subChange.delta ?? 0, false)"
+                            >{{ formatDelta(subChange.delta) }}</span
+                          >
+                          <span
+                            v-if="
+                              !!(subChange?.summary?.comment || subChange?.comment) ||
+                              showEmptyEditSummary
+                            "
+                            class="review-changes__summary-sep"
+                            aria-hidden="true"
+                            >&nbsp;·&nbsp;</span
+                          ></template
+                        ><component
+                          :is="subChange.pageName ? 'a' : 'span'"
+                          v-if="!!(subChange?.summary?.comment || subChange?.comment)"
+                          class="review-changes__thanks-patrol-summary-led"
+                          :class="{
+                            'review-changes__thanks-patrol-summary-hit': !!subChange.pageName,
+                          }"
+                          v-bind="
+                            subChange.pageName
+                              ? {
+                                  href: wiki.getRevisionUrl(subChange.id, subChange.pageName),
+                                  target: '_blank',
+                                  rel: 'noopener noreferrer',
+                                }
+                              : {}
+                          "
+                          @click="subChange.pageName && markRevisionAsViewed(subChange)"
+                          ><CdxIcon
+                            :icon="cdxIconEdit"
+                            size="x-small"
+                            :class="[
+                              'review-changes__thanks-patrol-summary-icon',
+                              isRevisionViewed(subChange)
+                                ? 'review-changes__thanks-patrol-summary-icon--subtle'
+                                : 'review-changes__thanks-patrol-summary-icon--emphasized',
+                            ]"
+                            aria-hidden="true"
+                          /><template v-if="subChange?.summary?.comment"
+                            ><span
+                              v-if="showDelta"
+                              :class="[
+                                'review-changes__comment',
+                                {
+                                  'review-changes__comment--no-cutout': !showSummaryCutout,
+                                },
+                              ]"
+                              v-html="subChange.summary.comment"
+                            ></span
+                            ><span
+                              v-else
+                              :class="[
+                                'review-changes__comment',
+                                {
+                                  'review-changes__comment--no-cutout': !showSummaryCutout,
+                                },
+                              ]"
+                              v-html="subChange.summary.comment"
+                            ></span></template
+                          ><span
+                            v-else-if="subChange?.comment"
+                            :class="[
+                              'review-changes__comment',
+                              {
+                                'review-changes__comment--no-cutout': !showSummaryCutout,
+                              },
+                            ]"
+                            >{{ subChange.comment }}</span>
+                          </component>
                       </div>
                     </div>
                   </div>
@@ -1210,6 +1384,11 @@ const props = withDefaults(
     protowikiThanksPatrolCompactCard?: boolean
     /** When external thanks patrol: merge revisions with same editor + page into one stacked card. */
     protowikiThanksPatrolGroupSamePageEdits?: boolean
+    /**
+     * Thanks patrol: do not wrap the whole card in a link; only each diff row (delta + summary)
+     * opens the revision diff. Opened rows grey individually.
+     */
+    protowikiThanksPatrolDiffOnlyClick?: boolean
   }>(),
   {
     showRevertRiskFlags: false,
@@ -1260,6 +1439,7 @@ const props = withDefaults(
     maxDisplayRevisions: undefined,
     protowikiThanksPatrolCompactCard: false,
     protowikiThanksPatrolGroupSamePageEdits: false,
+    protowikiThanksPatrolDiffOnlyClick: false,
   },
 )
 
@@ -1277,6 +1457,20 @@ const wiki = new FakeWiki('https://en.wikipedia.org/', {
   historyFetchConcurrency: 1,
   liftWingRevisionConcurrency: 1,
 })
+
+const thanksPatrolDiffOnlyInteraction = computed(
+  () => props.protowikiThanksPatrolDiffOnlyClick && props.protowikiThanksPatrolCompactCard,
+)
+
+function singleThanksOuterTag(change: FWRevision): 'a' | 'div' {
+  if (thanksPatrolDiffOnlyInteraction.value) return 'div'
+  return change.pageName ? 'a' : 'div'
+}
+
+function singleThanksOuterHref(change: FWRevision): string | undefined {
+  if (thanksPatrolDiffOnlyInteraction.value) return undefined
+  return change.pageName ? wiki.getRevisionUrl(change.id, change.pageName) : undefined
+}
 
 /** Set after `useStructuredDeltas` below; used by persist/restore helpers. */
 let structuredDeltas: ReturnType<typeof useStructuredDeltas> | null = null
@@ -1327,6 +1521,16 @@ function onCardPointerDown(event: PointerEvent | MouseEvent): void {
   if ((event.target as Element)?.closest('.review-changes__action-buttons')) {
     event.preventDefault()
   }
+}
+
+function onRevisionShellPointerDown(event: PointerEvent): void {
+  if (thanksPatrolDiffOnlyInteraction.value) return
+  onCardPointerDown(event)
+}
+
+function onRevisionShellMouseDown(event: MouseEvent): void {
+  if (thanksPatrolDiffOnlyInteraction.value) return
+  onCardPointerDown(event)
 }
 
 /** Check if a revision has been reverted (mw-reverted or reverted tag). */
@@ -3544,6 +3748,17 @@ function clusterHeadRevision(cluster: ThanksPatrolRevisionCluster): FWRevision {
 
 function clusterHasUnviewed(cluster: ThanksPatrolRevisionCluster): boolean {
   return cluster.revisions.some((r) => !isRevisionViewed(r))
+}
+
+function clusterHasAnyViewed(cluster: ThanksPatrolRevisionCluster): boolean {
+  return cluster.revisions.some((r) => isRevisionViewed(r))
+}
+
+/** Every stacked edit’s diff has been opened (thanks patrol diff-only full-card chrome). */
+function clusterAllViewed(cluster: ThanksPatrolRevisionCluster): boolean {
+  return (
+    cluster.revisions.length > 0 && cluster.revisions.every((r) => isRevisionViewed(r))
+  )
 }
 
 function clusterHasLastClicked(cluster: ThanksPatrolRevisionCluster): boolean {

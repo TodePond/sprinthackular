@@ -146,7 +146,9 @@
 
 /* Only when no coarse pointer */
 @media (pointer: fine) {
-  .review-changes__item-link:hover {
+  .review-changes__item-link:hover:not(.review-changes__item-link--thanks-patrol-diff-only-shell):not(
+      .review-changes__thanks-patrol-cluster-shell--diff-only
+    ):not(.review-changes__item-link--revision-viewed) {
     border-color: var(--border-color-base);
     /* box-sizing: auto; */
   }
@@ -189,13 +191,63 @@
   cursor: default;
 }
 
-.review-changes__item-link--not-link:hover {
+.review-changes__item-link--not-link:hover:not(.review-changes__item-link--thanks-patrol-diff-only-shell):not(
+    .review-changes__thanks-patrol-cluster-shell--diff-only
+  ) {
   background-color: transparent;
   border-color: transparent;
   border-width: 1px;
   margin: 0;
   box-shadow: none;
   z-index: auto;
+}
+
+/* Thanks patrol diff-only: card surface matches page base background (not neutral-subtle strip). */
+.review-changes__item-link--thanks-patrol-diff-only-shell,
+.review-changes__thanks-patrol-cluster-shell--diff-only {
+  background-color: var(--background-color-base);
+}
+
+/* Thanks patrol diff-only: card chrome stays visually stable on hover; summary rows have their own hover fill. */
+@media (pointer: fine) {
+  .review-changes__item-link--thanks-patrol-diff-only-shell.review-changes__item-link--revision-viewed:hover,
+  .review-changes__thanks-patrol-cluster-shell--diff-only.review-changes__item-link--revision-viewed:hover {
+    background-color: var(--background-color-neutral-subtle);
+    border-width: 1px;
+    border-color: transparent;
+    margin: 0;
+    box-shadow: none;
+    z-index: auto;
+  }
+
+  .review-changes__item-link--thanks-patrol-diff-only-shell:not(
+      .review-changes__item-link--revision-viewed
+    ):hover,
+  .review-changes__thanks-patrol-cluster-shell--diff-only:not(
+      .review-changes__item-link--revision-viewed
+    ):hover {
+    background-color: var(--background-color-base);
+    border-width: 1px;
+    margin: 0;
+    box-shadow: none;
+    z-index: auto;
+  }
+
+  .review-changes__item-link--thanks-patrol-diff-only-shell:not(
+      .review-changes__item-link--primary-unviewed-new-editor
+    ):not(.review-changes__item-link--revision-viewed):hover,
+  .review-changes__thanks-patrol-cluster-shell--diff-only:not(
+      .review-changes__item-link--primary-unviewed-new-editor
+    ):not(.review-changes__item-link--revision-viewed):hover {
+    border-color: var(--background-color-neutral);
+  }
+
+  .review-changes__item-link--thanks-patrol-diff-only-shell.review-changes__item-link--primary-unviewed-new-editor:hover,
+  .review-changes__thanks-patrol-cluster-shell--diff-only.review-changes__item-link--primary-unviewed-new-editor:hover {
+    border-color: var(--border-color-success, #099979);
+    border-width: 1px;
+    margin: 0;
+  }
 }
 
 .review-changes__item-link--unviewed {
@@ -275,6 +327,12 @@
   text-decoration: none;
 }
 
+.review-changes__page-cell--thanks-patrol-compact .review-changes__thanks-patrol-headline .review-changes__thanks-patrol-user-link,
+.review-changes__page-cell--thanks-patrol-compact .review-changes__thanks-patrol-headline .review-changes__thanks-patrol-page-link {
+  color: var(--color-base, #202122);
+  font-weight: var(--font-weight-bold, 700);
+}
+
 .review-changes__thanks-patrol-page-link:hover {
   color: var(--color-progressive--hover, #3056a9);
   text-decoration: underline;
@@ -292,7 +350,9 @@
 }
 
 .review-changes__item-link--revision-viewed:hover .review-changes__thanks-patrol-summary-led,
-.review-changes__item-link--revision-viewed:hover .review-changes__thanks-patrol-summary-led .review-changes__comment {
+.review-changes__item-link--revision-viewed:hover
+  .review-changes__thanks-patrol-summary-led
+  .review-changes__comment {
   color: var(--color-base--subtle, #54595d);
 }
 
@@ -310,27 +370,23 @@
 .review-changes__item-link--revision-viewed:has(.review-changes__page-cell--thanks-patrol-compact)
   .review-changes__thanks-patrol-summary-led,
 .review-changes__item-link--revision-viewed:has(.review-changes__page-cell--thanks-patrol-compact)
-  .review-changes__thanks-patrol-cluster-summaries .review-changes__comment,
+  .review-changes__thanks-patrol-cluster-summaries
+  .review-changes__comment,
 .review-changes__item-link--revision-viewed:has(.review-changes__page-cell--thanks-patrol-compact)
-  .review-changes__summary--thanks-patrol-second-line .review-changes__thanks-patrol-summary-led,
+  .review-changes__summary--thanks-patrol-second-line
+  .review-changes__thanks-patrol-summary-led,
 .review-changes__item-link--revision-viewed:has(.review-changes__page-cell--thanks-patrol-compact)
-  .review-changes__summary--thanks-patrol-second-line .review-changes__comment,
+  .review-changes__summary--thanks-patrol-second-line
+  .review-changes__comment,
 .review-changes__item-link--revision-viewed:has(.review-changes__page-cell--thanks-patrol-compact)
-  .review-changes__summary--thanks-patrol-second-line .review-changes__summary-prefix {
+  .review-changes__summary--thanks-patrol-second-line
+  .review-changes__summary-prefix {
   color: var(--color-base--subtle, #54595d);
 }
 
 /* Visited thanks-patrol cards: no visible border (cluster + single compact) */
 .review-changes__item-link--revision-viewed:has(.review-changes__page-cell--thanks-patrol-compact) {
   border-color: transparent;
-}
-
-@media (pointer: fine) {
-  .review-changes__item-link--revision-viewed:has(
-      .review-changes__page-cell--thanks-patrol-compact
-    ):hover {
-    border-color: transparent;
-  }
 }
 
 .review-changes__thanks-patrol-page-link strong {
@@ -779,8 +835,7 @@
 }
 
 /* Keep pencil + summary text on one flex row; text wraps inside the comment span. */
-.review-changes__page-cell--thanks-patrol-compact
-  .review-changes__thanks-patrol-summary-led {
+.review-changes__page-cell--thanks-patrol-compact .review-changes__thanks-patrol-summary-led {
   display: inline-flex;
   align-items: baseline;
   flex-wrap: nowrap;
@@ -842,8 +897,13 @@
   min-width: 0;
   text-decoration: none;
   color: inherit;
-  /* Clicks go to the stretch link behind .thanks-patrol-cluster-content (latest diff). */
-  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  /* Narrow viewports: clicks pass through to the stretch link (latest diff). */
+  .review-changes__thanks-patrol-cluster-summary-row {
+    pointer-events: none;
+  }
 }
 
 .review-changes__thanks-patrol-cluster-shell {
@@ -855,6 +915,72 @@
   position: absolute;
   inset: 0;
   z-index: 0;
+}
+
+/* Thanks patrol diff-only: no full-card stretch link; each summary row is its own hit target. */
+.review-changes__thanks-patrol-cluster-shell--diff-only {
+  cursor: default;
+}
+
+.review-changes__item-link--thanks-patrol-diff-only-shell {
+  cursor: default;
+}
+
+@media (max-width: 640px) {
+  .review-changes__thanks-patrol-cluster-shell--diff-only .review-changes__thanks-patrol-cluster-summary-row {
+    pointer-events: auto;
+  }
+}
+
+.review-changes__thanks-patrol-single-diff-hit.review-changes__thanks-patrol-summary-hit {
+  box-sizing: border-box;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 2px;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: nowrap;
+  gap: 0.25rem;
+  min-width: 0;
+  margin-block: calc(-1 * var(--spacing-25, 2px));
+  padding-block: var(--spacing-25, 2px);
+}
+
+/*
+ * Full-row diff hit (diff-only): bleed into the card gutters so the grey hover lines up with the
+ * headline row — symmetric horizontal bleed so the right edge matches the “New editor” chip (no
+ * extra overrun past the chip).
+ */
+.review-changes__page-cell--thanks-patrol-compact
+  .review-changes__summary--thanks-patrol-second-line.review-changes__thanks-patrol-summary-hit {
+  box-sizing: border-box;
+  margin-left: calc(-1 * var(--spacing-50, 8px));
+  margin-right: calc(-1 * var(--spacing-50, 8px));
+  padding-left: var(--spacing-50, 8px);
+  padding-right: var(--spacing-50, 8px);
+  width: calc(100% + 2 * var(--spacing-50, 8px));
+  max-width: none;
+}
+
+.review-changes__thanks-patrol-summary-hit--revision-viewed .review-changes__summary-prefix,
+.review-changes__thanks-patrol-summary-hit--revision-viewed .review-changes__thanks-patrol-summary-led,
+.review-changes__thanks-patrol-summary-hit--revision-viewed .review-changes__comment {
+  color: var(--color-base--subtle, #54595d);
+}
+
+.review-changes__thanks-patrol-cluster-summary-row--revision-viewed .review-changes__summary-prefix,
+.review-changes__thanks-patrol-cluster-summary-row--revision-viewed .review-changes__thanks-patrol-summary-led,
+.review-changes__thanks-patrol-cluster-summary-row--revision-viewed .review-changes__comment {
+  color: var(--color-base--subtle, #54595d);
+}
+
+@media (min-width: 641px) and (pointer: fine) {
+  .review-changes__thanks-patrol-summary-hit:hover:not(.review-changes__thanks-patrol-summary-hit--revision-viewed),
+  .review-changes__thanks-patrol-single-diff-hit:hover:not(
+      .review-changes__thanks-patrol-summary-hit--revision-viewed
+    ) {
+    background-color: var(--background-color-neutral, #eaecf0);
+  }
 }
 
 .review-changes__thanks-patrol-cluster-content {
@@ -873,6 +999,94 @@
 .review-changes__thanks-patrol-cluster-content .review-changes__primary-flag-icon,
 .review-changes__thanks-patrol-cluster-content .review-changes__arrow-in-top-right {
   pointer-events: none;
+}
+
+/* Thanks patrol cluster: summary link — modest hit target + full bleed to match chip row */
+.review-changes__thanks-patrol-cluster-summaries .review-changes__thanks-patrol-summary-hit {
+  box-sizing: border-box;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 2px;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: nowrap;
+  gap: 0.25rem;
+  min-width: 0;
+  margin-block: calc(-1 * var(--spacing-25, 2px));
+  padding-block: var(--spacing-25, 2px);
+}
+
+/* Single summary column (no delta prefix): stretch to card inner width so hover aligns with “New editor” chip. */
+.review-changes__thanks-patrol-cluster-summaries
+  .review-changes__summary--thanks-patrol-second-line:has(> .review-changes__thanks-patrol-summary-hit:only-child)
+  > .review-changes__thanks-patrol-summary-hit {
+  margin-left: calc(-1 * (4px + 0.125rem));
+  margin-right: -6px;
+  padding-left: calc(4px + 0.125rem);
+  padding-right: 6px;
+  width: calc(100% + 4px + 0.125rem + 6px);
+  max-width: none;
+}
+
+/* Delta + summary on same row: keep flex growth; pad/margin inline only */
+.review-changes__thanks-patrol-cluster-summaries
+  .review-changes__summary--thanks-patrol-second-line:not(
+    :has(> .review-changes__thanks-patrol-summary-hit:only-child)
+  )
+  > .review-changes__thanks-patrol-summary-hit {
+  flex: 1 1 auto;
+  margin-inline: -4px;
+  padding-inline: 4px;
+}
+
+@media (min-width: 641px) and (pointer: fine) {
+  .review-changes__thanks-patrol-summary-hit:hover,
+  .review-changes__item-link--revision-viewed .review-changes__thanks-patrol-summary-hit:hover {
+    background-color: var(--background-color-neutral, #eaecf0);
+  }
+}
+
+@media (max-width: 640px) {
+  /* Touch: tall rows; full-row chrome — no negative-margin bleed; stay inset in the card */
+  .review-changes__thanks-patrol-cluster-summaries .review-changes__thanks-patrol-summary-hit,
+  .review-changes__page-cell--thanks-patrol-compact
+    .review-changes__summary--thanks-patrol-second-line.review-changes__thanks-patrol-summary-hit,
+  .review-changes__thanks-patrol-single-diff-hit.review-changes__thanks-patrol-summary-hit {
+    margin-block: 0;
+    margin-inline: 0;
+    padding-block: var(--spacing-50, 8px);
+    padding-inline: var(--spacing-50, 8px);
+    align-items: center;
+    background-color: var(--background-color-neutral-subtle, #f8f9fa);
+    background-color: color-mix(
+      in srgb,
+      var(--background-color-neutral, #eaecf0) 28%,
+      var(--background-color-neutral-subtle, #f8f9fa)
+    );
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .review-changes__thanks-patrol-cluster-summaries
+    .review-changes__summary--thanks-patrol-second-line:has(> .review-changes__thanks-patrol-summary-hit:only-child)
+    > .review-changes__thanks-patrol-summary-hit,
+  .review-changes__thanks-patrol-cluster-summaries
+    .review-changes__summary--thanks-patrol-second-line:not(
+      :has(> .review-changes__thanks-patrol-summary-hit:only-child)
+    )
+    > .review-changes__thanks-patrol-summary-hit {
+    margin-left: 0;
+    margin-right: 0;
+    margin-inline: 0;
+    padding-inline: var(--spacing-50, 8px);
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .review-changes__thanks-patrol-cluster-summaries {
+    gap: var(--spacing-25, 2px);
+  }
 }
 
 /* Separate layout (Review Changes module): inline flow, timestamp as sibling */

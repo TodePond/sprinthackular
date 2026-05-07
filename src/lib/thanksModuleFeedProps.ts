@@ -20,6 +20,8 @@ export const thanksModuleFeedProps = {
   protowikiThanksPatrolCompactCard: true,
   /** Merge consecutive-cap list items that share editor + page into one card with stacked summaries. */
   protowikiThanksPatrolGroupSamePageEdits: true,
+  /** Card chrome is not a giant link; only each diff row (delta + summary) opens the revision diff. */
+  protowikiThanksPatrolDiffOnlyClick: true,
   /** Four blue badge variants in Figma (article quality, good faith, reference, low risk) await patrol signals; not in this feed yet. */
   source: 'recentChanges' as const,
 }
