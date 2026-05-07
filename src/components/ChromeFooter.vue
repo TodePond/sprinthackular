@@ -20,16 +20,25 @@ interface Props {
   skin?: Skin
   /** Local theme override for this subtree. Sets `data-theme` on the root. */
   theme?: Theme
+  /**
+   * Minerva-style “Last edited …” strip above the mobile footer well.
+   * Special pages typically set false.
+   */
+  showMobileLastEditedStrip?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   skin: undefined,
   theme: undefined,
+  showMobileLastEditedStrip: true,
 })
 
 const effectiveSkin = computed<Skin>(() => props.skin ?? globalSkin.value)
 const effectiveTheme = computed<Theme>(() => props.theme ?? globalTheme.value)
 const isDesktop = computed(() => effectiveSkin.value === 'desktop')
+const showLastEditedMobile = computed(
+  () => props.showMobileLastEditedStrip && !isDesktop.value,
+)
 
 const links = [
   {
@@ -82,7 +91,12 @@ const mobileFooterLinks = [
 </script>
 
 <template>
-  <footer class="chrome-footer" :data-skin="effectiveSkin" :data-theme="effectiveTheme">
+  <footer
+    class="chrome-footer"
+    :class="{ 'chrome-footer--no-last-edited-strip': !isDesktop && !showLastEditedMobile }"
+    :data-skin="effectiveSkin"
+    :data-theme="effectiveTheme"
+  >
     <slot>
       <!-- Desktop / tablet (Vector): centred column + prototype note -->
       <template v-if="isDesktop">
@@ -101,6 +115,7 @@ const mobileFooterLinks = [
       <!-- Mobile (Minerva-style): last-edited strip + grey well + brand row + short license -->
       <template v-else>
         <a
+          v-if="showLastEditedMobile"
           class="chrome-footer__last-edited"
           href="https://en.wikipedia.org/w/index.php?title=Special:RecentChangesLinked"
         >
@@ -236,6 +251,10 @@ const mobileFooterLinks = [
   border-top: none;
 }
 
+.chrome-footer--no-last-edited-strip .chrome-footer__mobile-body {
+  border-top: 1px solid var(--border-color-muted, #dadde3);
+}
+
 .chrome-footer__last-edited {
   display: flex;
   align-items: center;
@@ -274,7 +293,7 @@ const mobileFooterLinks = [
 }
 
 .chrome-footer__mobile-body {
-  padding: var(--spacing-100, 16px);
+  padding: var(--spacing-100, 16px) var(--spacing-100, 16px) 0;
   background-color: var(--background-color-neutral-subtle, #f8f9fa);
 }
 

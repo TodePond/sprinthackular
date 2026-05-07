@@ -31,6 +31,8 @@ interface Props {
   skin?: Skin
   /** Local theme override. Sets `data-theme` on the wrapper root. */
   theme?: Theme
+  /** Passed to ChromeFooter: show Minerva “Last edited” strip on mobile. */
+  showMobileLastEditedStrip?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -38,6 +40,7 @@ const props = withDefaults(defineProps<Props>(), {
   dir: undefined,
   skin: undefined,
   theme: undefined,
+  showMobileLastEditedStrip: true,
 })
 
 const effectiveSkin = computed<Skin>(() => props.skin ?? globalSkin.value)
@@ -81,7 +84,11 @@ provide(PROTOWIKI_CHROME_THEME, effectiveTheme)
     </main>
 
     <slot name="footer">
-      <ChromeFooter :skin="effectiveSkin" :theme="effectiveTheme" />
+      <ChromeFooter
+        :skin="effectiveSkin"
+        :theme="effectiveTheme"
+        :show-mobile-last-edited-strip="props.showMobileLastEditedStrip"
+      />
     </slot>
   </div>
 </template>
@@ -95,8 +102,9 @@ provide(PROTOWIKI_CHROME_THEME, effectiveTheme)
   color: var(--color-base, #202122);
 }
 
+/* Grow with page content only — avoids a white flex “dead zone” above the footer on short pages. */
 .chrome-wrapper__content {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   width: 100%;
   margin: 0 auto;
   padding: 0 0;

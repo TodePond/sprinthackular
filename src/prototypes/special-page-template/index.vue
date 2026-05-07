@@ -14,7 +14,7 @@ definePage({
 </script>
 
 <template>
-  <ChromeWrapper>
+  <ChromeWrapper :show-mobile-last-edited-strip="false">
     <SpecialPageWrapper title="Special page wrapper">
       <template #help>
         <a href="https://doc.wikimedia.org/codex/latest/" rel="noopener noreferrer">
