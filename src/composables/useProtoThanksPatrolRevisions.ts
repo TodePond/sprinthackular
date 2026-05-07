@@ -3,6 +3,7 @@ import type { FWRevision } from 'fakewiki/types'
 import { computed, onMounted, ref, watch } from 'vue'
 
 import { insertColonAfterSectionAutocommentInWikitext } from '@/lib/insertColonAfterSectionAutocommentInWikitext'
+import { stripSectionAutocommentArrowFromEditSummaryHtml } from '@/lib/stripSectionAutocommentArrowFromEditSummaryHtml'
 import { stripLinksFromHtml } from '@/lib/stripHtmlLinks'
 
 const API_UA = 'ProtoWiki/0.1 (https://github.com/wikimedia-research/protowiki) prototype'
@@ -154,8 +155,7 @@ export function useProtoThanksPatrolRevisions(options: {
     if (m) {
       const section = m[1].trim()
       const rest = m[2].trim()
-      const arrow = `→ ${section}`
-      return rest.length ? `${arrow}: ${rest}` : arrow
+      return rest.length ? `${section}: ${rest}` : section
     }
     return c.length ? c : '(no summary)'
   }
@@ -227,7 +227,9 @@ export function useProtoThanksPatrolRevisions(options: {
     if (!c) {
       if (r.parsedcomment?.trim()) {
         return {
-          html: stripLinksFromHtml(r.parsedcomment),
+          html: stripLinksFromHtml(
+            stripSectionAutocommentArrowFromEditSummaryHtml(r.parsedcomment),
+          ),
           placeholder: false,
         }
       }
@@ -250,7 +252,12 @@ export function useProtoThanksPatrolRevisions(options: {
     const c = (r.comment ?? '').trim()
     if (!c) {
       if (r.parsedcomment?.trim()) {
-        return { html: stripLinksFromHtml(r.parsedcomment), placeholder: false }
+        return {
+          html: stripLinksFromHtml(
+            stripSectionAutocommentArrowFromEditSummaryHtml(r.parsedcomment),
+          ),
+          placeholder: false,
+        }
       }
       return {
         html: '<span>(no summary)</span>',
@@ -263,7 +270,9 @@ export function useProtoThanksPatrolRevisions(options: {
         pageTitle,
       )
       return {
-        html: stripLinksFromHtml(stripFakewikiSummaryParentheses(html)),
+        html: stripLinksFromHtml(
+          stripSectionAutocommentArrowFromEditSummaryHtml(stripFakewikiSummaryParentheses(html)),
+        ),
         placeholder: false,
       }
     } catch {

@@ -18,6 +18,8 @@ export const thanksModuleFeedProps = {
   showShortDescriptionSeparator: false,
   /** Figma “After” card: **User** edited **Page**, sprout badge, no footer / user icon / timestamp. */
   protowikiThanksPatrolCompactCard: true,
+  /** Merge consecutive-cap list items that share editor + page into one card with stacked summaries. */
+  protowikiThanksPatrolGroupSamePageEdits: true,
   /** Four blue badge variants in Figma (article quality, good faith, reference, low risk) await patrol signals; not in this feed yet. */
   source: 'recentChanges' as const,
 }

@@ -6,6 +6,7 @@ import { CdxButton, CdxMessage, CdxTextInput } from '@wikimedia/codex'
 import ChromeWrapper from '@/components/ChromeWrapper.vue'
 import SpecialPageWrapper from '@/components/SpecialPageWrapper.vue'
 import { insertColonAfterSectionAutocommentInWikitext } from '@/lib/insertColonAfterSectionAutocommentInWikitext'
+import { stripSectionAutocommentArrowFromEditSummaryHtml } from '@/lib/stripSectionAutocommentArrowFromEditSummaryHtml'
 import { removeHeartConfettiLayers, spawnHeartConfettiFromButton } from '@/lib/protowikiHeartConfetti'
 
 definePage({
@@ -198,8 +199,7 @@ function parseEditSummary(comment: string | undefined): string {
   if (m) {
     const section = m[1].trim()
     const rest = m[2].trim()
-    const arrow = `→ ${section}`
-    return rest.length ? `${arrow}: ${rest}` : arrow
+    return rest.length ? `${section}: ${rest}` : section
   }
   return c.length ? c : '(no summary)'
 }
@@ -270,7 +270,10 @@ function buildSummaryHtmlWithoutTransform(r: RevisionRow): {
   const c = (r.comment ?? '').trim()
   if (!c) {
     if (r.parsedcomment?.trim()) {
-      return { html: r.parsedcomment, placeholder: false }
+      return {
+        html: stripSectionAutocommentArrowFromEditSummaryHtml(r.parsedcomment),
+        placeholder: false,
+      }
     }
     return {
       html: '<span class="thanks-patrol__summary-placeholder">(no summary)</span>',
@@ -295,7 +298,10 @@ async function buildSummaryHtml(
   const c = (r.comment ?? '').trim()
   if (!c) {
     if (r.parsedcomment?.trim()) {
-      return { html: r.parsedcomment, placeholder: false }
+      return {
+        html: stripSectionAutocommentArrowFromEditSummaryHtml(r.parsedcomment),
+        placeholder: false,
+      }
     }
     return {
       html: '<span class="thanks-patrol__summary-placeholder">(no summary)</span>',
@@ -307,7 +313,10 @@ async function buildSummaryHtml(
       insertColonAfterSectionAutocommentInWikitext(c),
       pageTitle,
     )
-    return { html: stripFakewikiSummaryParentheses(html), placeholder: false }
+    return {
+      html: stripSectionAutocommentArrowFromEditSummaryHtml(stripFakewikiSummaryParentheses(html)),
+      placeholder: false,
+    }
   } catch {
     const plain = parseEditSummary(r.comment)
     return {

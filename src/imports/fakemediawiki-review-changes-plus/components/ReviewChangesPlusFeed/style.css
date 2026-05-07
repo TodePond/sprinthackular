@@ -223,10 +223,12 @@
   padding-right: 2.25rem;
 }
 
-/* Thanks patrol compact: badge first in DOM + float:right so it shares the first line with the headline;
-   headline is block-level so following lines clear the float width. Summary clears below (see .review-changes__summary--thanks-patrol-second-line). */
+/* Thanks patrol compact: headline (col 1) + New editor chip (col 2, trailing edge of card). */
 .review-changes__thanks-patrol-top-row {
-  display: flow-root;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 8px;
   width: 100%;
   min-width: 0;
 }
@@ -238,9 +240,10 @@
 }
 
 .review-changes__thanks-patrol-top-row .review-changes__thanks-patrol-new-editor-badge {
-  float: right;
-  margin-left: 8px;
-  /* margin: 0 0 var(--spacing-25, 4px) var(--spacing-50, 8px); */
+  float: none;
+  margin: 0;
+  justify-self: end;
+  align-self: start;
 }
 
 .review-changes__thanks-patrol-new-editor-badge {
@@ -275,6 +278,59 @@
 .review-changes__thanks-patrol-page-link:hover {
   color: var(--color-progressive--hover, #3056a9);
   text-decoration: underline;
+}
+
+/* Opened thanks-patrol card: nested links stay subtle on hover (no progressive blue). */
+.review-changes__item-link--revision-viewed .review-changes__thanks-patrol-page-link:hover {
+  color: var(--color-base--subtle, #54595d);
+  text-decoration: underline;
+}
+
+.review-changes__item-link--revision-viewed .review-changes__user:hover {
+  color: var(--color-base--subtle, #54595d);
+  text-decoration: underline;
+}
+
+.review-changes__item-link--revision-viewed:hover .review-changes__thanks-patrol-summary-led,
+.review-changes__item-link--revision-viewed:hover .review-changes__thanks-patrol-summary-led .review-changes__comment {
+  color: var(--color-base--subtle, #54595d);
+}
+
+/* Opened thanks-patrol compact: headline, summaries, deltas — full subtle treatment */
+.review-changes__item-link--revision-viewed:has(.review-changes__page-cell--thanks-patrol-compact)
+  .review-changes__thanks-patrol-headline
+  .review-changes__user,
+.review-changes__item-link--revision-viewed:has(.review-changes__page-cell--thanks-patrol-compact)
+  .review-changes__thanks-patrol-page-link {
+  color: var(--color-base--subtle, #54595d);
+}
+
+.review-changes__item-link--revision-viewed:has(.review-changes__page-cell--thanks-patrol-compact)
+  .review-changes__thanks-patrol-cluster-summaries,
+.review-changes__item-link--revision-viewed:has(.review-changes__page-cell--thanks-patrol-compact)
+  .review-changes__thanks-patrol-summary-led,
+.review-changes__item-link--revision-viewed:has(.review-changes__page-cell--thanks-patrol-compact)
+  .review-changes__thanks-patrol-cluster-summaries .review-changes__comment,
+.review-changes__item-link--revision-viewed:has(.review-changes__page-cell--thanks-patrol-compact)
+  .review-changes__summary--thanks-patrol-second-line .review-changes__thanks-patrol-summary-led,
+.review-changes__item-link--revision-viewed:has(.review-changes__page-cell--thanks-patrol-compact)
+  .review-changes__summary--thanks-patrol-second-line .review-changes__comment,
+.review-changes__item-link--revision-viewed:has(.review-changes__page-cell--thanks-patrol-compact)
+  .review-changes__summary--thanks-patrol-second-line .review-changes__summary-prefix {
+  color: var(--color-base--subtle, #54595d);
+}
+
+/* Visited thanks-patrol cards: no visible border (cluster + single compact) */
+.review-changes__item-link--revision-viewed:has(.review-changes__page-cell--thanks-patrol-compact) {
+  border-color: transparent;
+}
+
+@media (pointer: fine) {
+  .review-changes__item-link--revision-viewed:has(
+      .review-changes__page-cell--thanks-patrol-compact
+    ):hover {
+    border-color: transparent;
+  }
 }
 
 .review-changes__thanks-patrol-page-link strong {
@@ -716,10 +772,107 @@
   clear: both;
   width: 100%;
   max-width: 100%;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  column-gap: 0.25rem;
+}
+
+/* Keep pencil + summary text on one flex row; text wraps inside the comment span. */
+.review-changes__page-cell--thanks-patrol-compact
+  .review-changes__thanks-patrol-summary-led {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: nowrap;
+  gap: 0.25rem;
+  min-width: 0;
+  max-width: 100%;
+  flex: 1 1 auto;
+}
+
+.review-changes__page-cell--thanks-patrol-compact
+  .review-changes__thanks-patrol-summary-led
+  .review-changes__comment {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.review-changes__thanks-patrol-summary-icon {
+  flex-shrink: 0;
+}
+
+.review-changes__thanks-patrol-summary-icon--emphasized {
+  color: var(--color-emphasized, #101418);
+}
+
+.review-changes__thanks-patrol-summary-icon--subtle {
+  color: var(--color-base--subtle, #54595d);
+}
+
+.review-changes__thanks-patrol-edited--visited {
+  color: var(--color-base--subtle, #54595d);
 }
 
 .review-changes__page-cell--thanks-patrol-compact {
   overflow: visible;
+  width: 100%;
+  max-width: 100%;
+  align-self: stretch;
+}
+
+.review-changes__thanks-patrol-cluster-shell .review-changes__item-header {
+  justify-content: flex-start;
+}
+
+.review-changes__thanks-patrol-cluster-summaries {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin-top: 2px;
+  padding-left: 0.125rem;
+}
+
+.review-changes__thanks-patrol-cluster-summary-row {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+  /* Clicks go to the stretch link behind .thanks-patrol-cluster-content (latest diff). */
+  pointer-events: none;
+}
+
+.review-changes__thanks-patrol-cluster-shell {
+  position: relative;
+  cursor: pointer;
+}
+
+.review-changes__thanks-patrol-cluster-hit {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.review-changes__thanks-patrol-cluster-content {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.review-changes__thanks-patrol-cluster-content a {
+  pointer-events: auto;
+}
+
+.review-changes__thanks-patrol-cluster-content .review-changes__primary-flag-icon,
+.review-changes__thanks-patrol-cluster-content .review-changes__arrow-in-top-right {
+  pointer-events: none;
 }
 
 /* Separate layout (Review Changes module): inline flow, timestamp as sibling */

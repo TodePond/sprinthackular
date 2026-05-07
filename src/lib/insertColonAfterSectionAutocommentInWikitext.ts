@@ -1,7 +1,8 @@
 /**
  * fakewiki `preprocessEditSummary` turns section autocomments into an in-page wikilink
  * plus the free-text summary, with no colon between them. Normalize the raw comment
- * so the transformed HTML reads like "→Section: comment", matching plain `parseEditSummary`.
+ * so the transformed HTML reads like "Section: comment" (arrow stripped after render),
+ * matching plain `parseEditSummary`.
  */
 export function insertColonAfterSectionAutocommentInWikitext(comment: string): string {
   const m = comment.match(/^\s*\/\*\s*([^*]+?)\s*\*\/\s*(.*)$/s)

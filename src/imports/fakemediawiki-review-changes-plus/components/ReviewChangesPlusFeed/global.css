@@ -18,3 +18,12 @@
 .review-changes .review-changes__comment table {
 	display: inline;
 }
+
+/* Opened thanks-patrol compact: v-html summary links stay subtle */
+.review-changes .review-changes__item-link--revision-viewed .review-changes__page-cell--thanks-patrol-compact .review-changes__comment a {
+	color: var(--color-base--subtle, #54595d);
+}
+
+.review-changes .review-changes__item-link--revision-viewed .review-changes__page-cell--thanks-patrol-compact .review-changes__comment a:hover {
+	color: var(--color-base--subtle, #54595d);
+}
