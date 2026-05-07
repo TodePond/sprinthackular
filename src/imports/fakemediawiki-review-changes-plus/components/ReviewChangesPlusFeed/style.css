@@ -4,6 +4,17 @@
   padding: 0;
 }
 
+/* Module frame: list/errors live inside; title row + protowiki intro stay outside (thanks-module). */
+.review-changes__module-bordered {
+  min-width: 0;
+}
+
+.review-changes:not(.review-changes--no-border) .review-changes__module-bordered {
+  border: 1px solid var(--border-color-subtle, #a2a9b1);
+  border-radius: 2px;
+  box-sizing: border-box;
+}
+
 .review-changes__title-row {
   display: flex;
   align-items: center;
@@ -33,6 +44,33 @@
   align-items: center;
   gap: 2px;
   flex-shrink: 0;
+}
+
+/* ProtoWiki: optional intro under the title row (thanks-module; visible on mobile + desktop). */
+.review-changes__protowiki-below-title {
+  box-sizing: border-box;
+  max-width: 42rem;
+  /* margin: 0 0 var(--spacing-50, 8px); */
+  /* padding: 0 20px 0 ; */
+  padding-bottom: 16px;
+  font-size: var(--font-size-small, 0.875rem);
+  font-weight: var(--font-weight-normal, 400);
+  line-height: var(--line-height-small, 1.375);
+  color: var(--color-subtle, #54595d);
+  background-color: var(--background-color-base);
+}
+
+.review-changes__protowiki-below-title :where(p) {
+  margin: 0;
+}
+
+.review-changes__protowiki-below-title :deep(a) {
+  color: var(--color-progressive, #36c);
+  text-decoration: none;
+}
+
+.review-changes__protowiki-below-title :deep(a:hover) {
+  text-decoration: underline;
 }
 
 .review-changes__refresh {
@@ -345,8 +383,12 @@
  * Card chrome for blue signal badge: mirrors `.review-changes__item-link--primary-unviewed-new-editor`
  * (1px solid semantic border). Keep colored border only while the card is still “unopened” in feed chrome.
  */
-.review-changes__item-link--thanks-patrol-signal-flag:not(.review-changes__item-link--revision-viewed),
-.review-changes__thanks-patrol-cluster-shell--signal-flag:not(.review-changes__item-link--revision-viewed) {
+.review-changes__item-link--thanks-patrol-signal-flag:not(
+  .review-changes__item-link--revision-viewed
+),
+.review-changes__thanks-patrol-cluster-shell--signal-flag:not(
+  .review-changes__item-link--revision-viewed
+) {
   border-width: 1px;
   border-style: solid;
   border-color: var(--border-color-progressive, #3056a9);

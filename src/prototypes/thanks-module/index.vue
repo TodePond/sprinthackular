@@ -111,7 +111,21 @@ function onPatrolHeaderRefresh(): void {
           :protowiki-show-more-to="null"
           :max-display-revisions="20"
           @protowiki-request-refresh="refresh"
-        />
+        >
+          <template #protowikiBelowTitle>
+            <p class="thanks-module__patrol-intro">
+              Send thanks and
+              <a
+                href="https://en.wikipedia.org/wiki/Wikipedia:WikiLove"
+                target="_blank"
+                rel="noreferrer"
+              >
+                WikiLove
+              </a>
+              to show your appreciation to Wikipedia editors.
+            </p>
+          </template>
+        </ReviewChangesPlusFeed>
       </div>
     </SpecialPageWrapper>
   </ChromeWrapper>
@@ -125,6 +139,10 @@ function onPatrolHeaderRefresh(): void {
 
 .thanks-module__messages {
   padding-inline: var(--spacing-150, 1rem);
+}
+
+.thanks-module__patrol-intro {
+  margin: 0;
 }
 
 .thanks-module__sp-actions {
@@ -154,12 +172,6 @@ function onPatrolHeaderRefresh(): void {
 
   .thanks-module-page :deep(.special-page-wrapper__header) {
     margin-bottom: var(--spacing-50, 8px);
-  }
-
-  .thanks-module-page :deep(.review-changes) {
-    border: 1px solid var(--border-color-subtle, #a2a9b1);
-    border-radius: 2px;
-    box-sizing: border-box;
   }
 
   .thanks-module-page :deep(.review-changes__feed) {
@@ -200,9 +212,12 @@ function onPatrolHeaderRefresh(): void {
 
   .thanks-module-page :deep(.review-changes) {
     margin-inline: var(--spacing-25, 4px);
-    border: none;
-    border-radius: 0;
     box-sizing: border-box;
+  }
+
+  .thanks-module-page :deep(.review-changes__module-bordered) {
+    border: none !important;
+    border-radius: 0;
   }
 
   .thanks-module-page :deep(.review-changes__feed) {
@@ -218,6 +233,10 @@ function onPatrolHeaderRefresh(): void {
     padding-inline: var(--spacing-100, 16px);
     box-sizing: border-box;
     background-color: var(--background-color-base, #fff);
+  }
+
+  .thanks-module-page :deep(.review-changes__protowiki-below-title) {
+    padding-inline: var(--spacing-100, 16px);
   }
 }
 </style>

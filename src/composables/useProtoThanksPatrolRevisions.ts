@@ -33,7 +33,8 @@ const NEW_EDITOR_MAX_EDITS = 10
 const PATROL_MERGED_CANDIDATES_CAP = 300
 /** Max revisions returned to the feed after filtering. */
 const PATROL_OUTPUT_LIMIT = 80
-const CACHE_VERSION = 13 as const
+/** Bump when patrol row shape changes (e.g. Action API `tags` for revert filtering). */
+const CACHE_VERSION = 14 as const
 /**
  * Bump when edit-summary HTML for patrol rows changes (e.g. section autocomment + colon).
  * Older cached payloads omit this field; on load we strip `summaryHtml` and re-enrich once.
@@ -55,6 +56,8 @@ export interface ThanksPatrolRevisionRow {
   summaryPlaceholder?: boolean
   /** Revision author's total edit count (when known); drives thanksPatrolNewEditor 0–NEW_EDITOR_MAX_EDITS. */
   patrolSubjectEditorEditcount?: number | null
+  /** Change tags from Action API `rvprop=tags` (e.g. `mw-reverted`). */
+  tags?: string[]
 }
 
 interface ThanksPatrolCache {
@@ -75,6 +78,8 @@ interface WikiRevisionRaw {
   minor?: boolean | string
   bot?: boolean | string
   anon?: boolean | string
+  /** Present when `rvprop` includes `tags`; array of tag names. */
+  tags?: unknown
 }
 
 interface UserContribRaw {
@@ -149,6 +154,7 @@ export function useProtoThanksPatrolRevisions(options: {
         thanksPatrolNewEditor: isNewEditorByEditcount(r.patrolSubjectEditorEditcount),
         thanksPatrolParentRevId:
           typeof r.parentid === 'number' && !Number.isNaN(r.parentid) ? r.parentid : 0,
+        ...(r.tags?.length ? { tags: r.tags } : {}),
       }))
   }
 
@@ -367,11 +373,20 @@ export function useProtoThanksPatrolRevisions(options: {
     return map
   }
 
+  function normalizeWikiRevisionTags(raw: WikiRevisionRaw): string[] | undefined {
+    const t = raw.tags
+    if (t == null) return undefined
+    if (!Array.isArray(t)) return undefined
+    const out = t.filter((x): x is string => typeof x === 'string' && x.length > 0)
+    return out.length ? out : undefined
+  }
+
   function normalizeRevision(
     r: WikiRevisionRaw,
   ): Omit<ThanksPatrolRevisionRow, 'articleTitle'> | null {
     const revid = r.revid
     if (revid == null) return null
+    const tags = normalizeWikiRevisionTags(r)
     return {
       revid,
       parentid: r.parentid ?? 0,
@@ -381,6 +396,7 @@ export function useProtoThanksPatrolRevisions(options: {
       comment: r.comment,
       parsedcomment: r.parsedcomment,
       minor: Boolean(r.minor),
+      ...(tags?.length ? { tags } : {}),
     }
   }
 
@@ -454,7 +470,7 @@ export function useProtoThanksPatrolRevisions(options: {
         titles: articleTitle,
         prop: 'revisions',
         rvlimit: REVISION_LIMIT,
-        rvprop: 'ids|timestamp|user|userid|comment|parsedcomment|flags',
+        rvprop: 'ids|timestamp|user|userid|comment|parsedcomment|flags|tags',
       })
       const page = firstQueryPage(data)
       if (!page) continue
