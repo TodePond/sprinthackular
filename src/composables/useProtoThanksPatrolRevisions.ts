@@ -2,6 +2,7 @@ import { FakeWiki, type FWUserInfo } from 'fakewiki'
 import type { FWRevision } from 'fakewiki/types'
 import { computed, onMounted, ref, watch } from 'vue'
 
+import { insertColonAfterSectionAutocommentInWikitext } from '@/lib/insertColonAfterSectionAutocommentInWikitext'
 import { stripLinksFromHtml } from '@/lib/stripHtmlLinks'
 
 const API_UA = 'ProtoWiki/0.1 (https://github.com/wikimedia-research/protowiki) prototype'
@@ -32,6 +33,11 @@ const PATROL_MERGED_CANDIDATES_CAP = 300
 /** Max revisions returned to the feed after filtering. */
 const PATROL_OUTPUT_LIMIT = 80
 const CACHE_VERSION = 13 as const
+/**
+ * Bump when edit-summary HTML for patrol rows changes (e.g. section autocomment + colon).
+ * Older cached payloads omit this field; on load we strip `summaryHtml` and re-enrich once.
+ */
+const PATROL_CACHE_SUMMARY_FORMAT = 1 as const
 
 export interface ThanksPatrolRevisionRow {
   articleTitle: string
@@ -54,6 +60,7 @@ interface ThanksPatrolCache {
   v: typeof CACHE_VERSION
   title: string
   revisions: ThanksPatrolRevisionRow[]
+  summaryFormat?: number
 }
 
 interface WikiRevisionRaw {
@@ -251,7 +258,10 @@ export function useProtoThanksPatrolRevisions(options: {
       }
     }
     try {
-      const html = await wiki.getEditSummaryHtml(c, pageTitle)
+      const html = await wiki.getEditSummaryHtml(
+        insertColonAfterSectionAutocommentInWikitext(c),
+        pageTitle,
+      )
       return {
         html: stripLinksFromHtml(stripFakewikiSummaryParentheses(html)),
         placeholder: false,
@@ -499,7 +509,15 @@ export function useProtoThanksPatrolRevisions(options: {
         typeof parsed.title === 'string' && parsed.title.trim() ? parsed.title.trim() : ''
       if (cachedTitle !== expectedScope) return
       pageTitleResolved.value = cachedTitle
-      revisions.value = parsed.revisions
+      const summaryFormat = parsed.summaryFormat ?? 0
+      const needsSummaryReformat = summaryFormat < PATROL_CACHE_SUMMARY_FORMAT
+      revisions.value = needsSummaryReformat
+        ? parsed.revisions.map((r) => ({
+            ...r,
+            summaryHtml: undefined,
+            summaryPlaceholder: undefined,
+          }))
+        : parsed.revisions
     } catch {
       /* ignore */
     }
@@ -511,6 +529,7 @@ export function useProtoThanksPatrolRevisions(options: {
         v: CACHE_VERSION,
         title,
         revisions: list,
+        summaryFormat: PATROL_CACHE_SUMMARY_FORMAT,
       }
       localStorage.setItem(options.revisionsStorageKey, JSON.stringify(payload))
     } catch {

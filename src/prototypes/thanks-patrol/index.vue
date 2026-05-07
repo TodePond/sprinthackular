@@ -5,6 +5,7 @@ import { CdxButton, CdxMessage, CdxTextInput } from '@wikimedia/codex'
 
 import ChromeWrapper from '@/components/ChromeWrapper.vue'
 import SpecialPageWrapper from '@/components/SpecialPageWrapper.vue'
+import { insertColonAfterSectionAutocommentInWikitext } from '@/lib/insertColonAfterSectionAutocommentInWikitext'
 import { removeHeartConfettiLayers, spawnHeartConfettiFromButton } from '@/lib/protowikiHeartConfetti'
 
 definePage({
@@ -302,7 +303,10 @@ async function buildSummaryHtml(
     }
   }
   try {
-    const html = await wiki.getEditSummaryHtml(c, pageTitle)
+    const html = await wiki.getEditSummaryHtml(
+      insertColonAfterSectionAutocommentInWikitext(c),
+      pageTitle,
+    )
     return { html: stripFakewikiSummaryParentheses(html), placeholder: false }
   } catch {
     const plain = parseEditSummary(r.comment)
